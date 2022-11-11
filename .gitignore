@@ -1,0 +1,5 @@
+# No IDE stuff
+.idea/*
+
+# No compiled stuff
+*.js
