@@ -1,5 +1,5 @@
 # No IDE stuff
 .idea/*
 
-# No compiled stuff
-*.js
+# No local installation stuff
+node_modules/*

@@ -1,0 +1,22 @@
+{
+  "name": "deeptime",
+  "version": "1.0.0",
+  "description": "Visualizing deep time.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/marasolen/deeptime.git"
+  },
+  "author": "Mara Solen <marasolen@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/marasolen/deeptime/issues"
+  },
+  "homepage": "https://github.com/marasolen/deeptime#readme",
+  "devDependencies": {
+    "eslint": "^8.27.0"
+  }
+}
