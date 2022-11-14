@@ -1,5 +1,5 @@
 class AlignedMultiTieredTimeline {
-    config; data;
+    config; origData; data; events;
 
     width; height;
 
@@ -18,7 +18,7 @@ class AlignedMultiTieredTimeline {
 
     constructor(config, data) {
         this.config = config;
-        this.data = data;
+        this.origData = data;
 
         this.configureVis();
     }
@@ -27,6 +27,34 @@ class AlignedMultiTieredTimeline {
      * We initialize the arc generator, scales, axes, and append static elements
      */
     configureVis() {
+        const vis = this;
+
+        vis.yScale = d3.scaleLog();
+
+        vis.yAxis = d3.axisRight(vis.yScale);
+
+        // Define size of SVG drawing area
+        vis.svg = d3.select(vis.config.parentElement)
+            .append('svg')
+            .attr('class', 'drawing-area');
+
+        // Append group element that will contain our actual chart
+        // and position it according to the given margin config
+        vis.chart = vis.svg.append('g')
+            .attr('class', 'chart');
+
+        // Append y-axis group and move it to the right of the chart
+        vis.yAxisG = vis.chart.append('g')
+            .attr('class', 'axis y-axis');
+
+        // Append axis titles
+        vis.chart.append('text')
+            .attr('class', 'y-axis-title');
+
+        vis.updateVis();
+    }
+
+    updateVis() {
         const vis = this;
 
         // Calculate inner chart size. Margin specifies the space around the actual chart.
@@ -39,7 +67,14 @@ class AlignedMultiTieredTimeline {
             return;
         }
 
+        vis.data = vis.origData;
+        vis.nextUuid = 0;
+
         // Initialize scales
+        vis.events = [];
+        vis.xScales = {};
+        vis.xAxes = {};
+
         let min = vis.getTimeInYears(vis.data[0].time);
         let max = vis.getTimeInYears(vis.data[0].time);
 
@@ -54,20 +89,21 @@ class AlignedMultiTieredTimeline {
                 .range([0, vis.width]);
 
             if (lastEvent) {
-                d.events.push({ label: lastEvent.label, time: lastEvent.time });
+                vis.events.push({ label: lastEvent.label, time: lastEvent.time, parent: d.uuid,
+                    yTime: vis.getTimeInYears(d.time) });
             }
+            vis.events.push(...d.events.map(e => {
+                return {label: e.label, time: e.time, parent: d.uuid, yTime: vis.getTimeInYears(d.time)};
+            }));
             lastEvent = d;
         });
 
         const minFloor = Math.pow(10, Math.floor(Math.log10(min)));
         const maxCeil = Math.pow(10, Math.ceil(Math.log10(max)));
 
-        vis.yScale = d3.scaleLog()
+        vis.yScale
             .domain([minFloor, maxCeil])
             .range([vis.height, 0]);
-
-        globalLogBook.addLog(logLevel.Info, "min: " + min + ", minFloor: " + minFloor);
-        globalLogBook.addLog(logLevel.Info, "max: " + max + ", maxCeil: " + maxCeil);
 
         // Initialize axes
         data.forEach(d => {
@@ -87,7 +123,7 @@ class AlignedMultiTieredTimeline {
                 });
         });
 
-        vis.yAxis = d3.axisRight(vis.yScale)
+        vis.yAxis.scale(vis.yScale)
             .ticks(Math.ceil(Math.log10(maxCeil) - Math.log10(minFloor)))
             .tickFormat(v => {
                 return d3.format(".3s")(v)
@@ -96,6 +132,7 @@ class AlignedMultiTieredTimeline {
             });
 
         // Construct area data for showing part to whole relationships
+        vis.areas = [];
         vis.areaGen = data => {
             let path = "M";
             data.forEach(p => {
@@ -118,7 +155,7 @@ class AlignedMultiTieredTimeline {
 
             const data = [
                 { x: 0, y: currY },
-                { x: vis.xScales[i + 1](currTime), y: nextY },
+                { x: vis.xScales[curr.uuid + 1](currTime), y: nextY },
                 { x: vis.width, y: nextY },
                 { x: vis.width, y: currY },
                 { x: 0, y: currY }
@@ -128,40 +165,40 @@ class AlignedMultiTieredTimeline {
         });
 
         // Define size of SVG drawing area
-        vis.svg = d3.select(vis.config.parentElement).append('svg')
+        vis.svg
             .attr('width', vis.config.containerWidth)
             .attr('height', vis.config.containerHeight);
 
         // Append group element that will contain our actual chart
         // and position it according to the given margin config
-        vis.chart = vis.svg.append('g')
+        vis.chart
             .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
 
-        // Append x-axis group and move it to the bottom of the chart
+        // Append x-axis groups and move them to the appropriate y positions
+        vis.chart.selectAll('.x-axis').remove();
+
         vis.data.forEach(d => {
             vis.xAxisGs[d.uuid] = vis.chart.append('g')
-                .attr('class', 'axis x-axis-' + d.uuid)
+                .attr('class', 'x-axis')
                 .attr('transform', `translate(0,${vis.yScale(vis.getTimeInYears(d.time))})`);
         });
 
+        vis.chart.selectAll('.axis-title')
+            .data(vis.data)
+            .join("text")
+            .attr('class', 'axis-title')
+            .attr('x', 0)
+            .attr('y', d => vis.yScale(vis.getTimeInYears(d.time)) + 20)
+            .attr('dy', '.71em')
+            .style('text-anchor', 'start')
+            .text(d =>d.label);
+
         // Append y-axis group and move it to the right of the chart
-        vis.yAxisG = vis.chart.append('g')
+        vis.yAxisG
             .attr('class', 'axis y-axis')
             .attr('transform', `translate(${vis.width}, 0)`);
 
-        // Append axis titles
-        vis.data.forEach(d => {
-            vis.chart.append("text")
-                .attr('class', 'axis-title')
-                .attr('x', 0)
-                .attr('y', vis.yScale(vis.getTimeInYears(d.time)) + 20)
-                .attr('dy', '.71em')
-                .style('text-anchor', 'start')
-                .text(d.label);
-        });
-
-        vis.chart.append('text')
-            .attr('class', 'axis-title')
+        vis.chart.selectAll('.y-axis-title')
             .attr('y', -20)
             .attr('x', vis.width + 30)
             .attr('dy', '.71em')
@@ -171,24 +208,8 @@ class AlignedMultiTieredTimeline {
         vis.renderVis();
     }
 
-    updateVis() {
-        const vis = this;
-
-        // Calculate inner chart size. Margin specifies the space around the actual chart.
-        vis.width = vis.config.containerWidth - vis.config.margin.left - vis.config.margin.right;
-        vis.height = vis.config.containerHeight - vis.config.margin.top - vis.config.margin.bottom;
-
-        Object.values(vis.xScales).forEach((s) => {
-            s.range([0, vis.config.width]);
-        });
-
-        vis.yScale.range([0, vis.config.height]);
-
-        vis.renderVis();
-    }
-
     /**
-     * Bind data to visual elements (enter-update-exit) and update axes
+     * Bind data to visual elements (enter-update-exit/join) and update axes
      */
     renderVis() {
         const vis = this;
@@ -205,30 +226,31 @@ class AlignedMultiTieredTimeline {
         vis.data.forEach(d => {
             const xScale = vis.xScales[d.uuid];
             const y = vis.yScale(vis.getTimeInYears(d.time));
-            vis.chart.selectAll(".event event-" + d.uuid)
-                .data(d.events)
-                .join("circle")
-                .attr("class", "event event-" + d.uuid)
-                .attr("cx", e => xScale(vis.getTimeInYears(e.time)))
-                .attr("cy", y)
-                .attr("r", 4)
-                .attr("fill", "red")
-                .attr("stroke", "none");
-
-            vis.chart.selectAll(".event-text event-" + d.uuid)
-                .data(d.events)
-                .join("text")
-                .attr("class", "event-text event-" + d.uuid)
-                .attr("x", e => xScale(vis.getTimeInYears(e.time)))
-                .attr("y", y - 11)
-                .style('text-anchor', 'middle')
-                .style("font-size", "11px")
-                .text(e => e.label);
+            const className = d.label.replaceAll(" ", "").replaceAll(".", "");
         });
+        vis.chart.selectAll(".event-dot")
+            .data(vis.events)
+            .join("circle")
+            .attr("class", "event-dot")
+            .attr("cx", e => vis.xScales[e.parent](vis.getTimeInYears(e.time)))
+            .attr("cy", e => vis.yScale(e.yTime))
+            .attr("r", 4)
+            .attr("fill", "red")
+            .attr("stroke", "none");
+
+        vis.chart.selectAll(".event-text")
+            .data(vis.events)
+            .join("text")
+            .attr("class", "event-text")
+            .attr("x", e => vis.xScales[e.parent](vis.getTimeInYears(e.time)))
+            .attr("y", e => vis.yScale(e.yTime) - 11)
+            .style('text-anchor', 'middle')
+            .style("font-size", "11px")
+            .text(e => e.label);
 
         vis.data.forEach(d => {
             vis.xAxisGs[d.uuid].call(vis.xAxes[d.uuid]);
-        });
+        })
         vis.yAxisG.call(vis.yAxis);
     }
 
