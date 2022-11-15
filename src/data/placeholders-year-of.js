@@ -29,6 +29,20 @@ const placeholdersYearOf = [
             "value": 1936
         },
         "events": [
+            {
+                "label": "Y2K",
+                "time": {
+                    "unit": "year",
+                    "value": 2000
+                }
+            },
+            {
+                "label": "the first Super Bowl",
+                "time": {
+                    "unit": "year",
+                    "value": 1967
+                }
+            },
         ]
     },
     {
@@ -38,6 +52,20 @@ const placeholdersYearOf = [
             "value": 1000
         },
         "events": [
+            {
+                "label": "Coca-Cola invented",
+                "time": {
+                    "unit": "year",
+                    "value": 1886
+                }
+            },
+            {
+                "label": "first printing press in Europe",
+                "time": {
+                    "unit": "year",
+                    "value": 1439
+                }
+            },
         ]
     },
     {
@@ -47,6 +75,20 @@ const placeholdersYearOf = [
             "value": -9500
         },
         "events": [
+            {
+                "label": "the wheel is invented",
+                "time": {
+                    "unit": "year",
+                    "value": -3500
+                }
+            },
+            {
+                "label": "rice is cultivated",
+                "time": {
+                    "unit": "year",
+                    "value": -6200
+                }
+            },
         ]
     },
     {
@@ -83,6 +125,13 @@ const placeholdersYearOf = [
             "value": -89000000
         },
         "events": [
+            {
+                "label": "origin of the earliest T-rex fossil",
+                "time": {
+                    "unit": "year",
+                    "value": -68000000
+                }
+            },
         ]
     },
     {
@@ -92,6 +141,13 @@ const placeholdersYearOf = [
             "value": -600000000
         },
         "events": [
+            {
+                "label": "Pangaea forms",
+                "time": {
+                    "unit": "year",
+                    "value": -335000000
+                }
+            },
         ]
     },
     {
@@ -101,6 +157,13 @@ const placeholdersYearOf = [
             "value": -4500000000
         },
         "events": [
+            {
+                "label": "first life on Earth",
+                "time": {
+                    "unit": "year",
+                    "value": -4000000000
+                }
+            },
         ]
     }
 ];
