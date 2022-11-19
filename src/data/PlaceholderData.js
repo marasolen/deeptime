@@ -142,6 +142,13 @@ const placeholdersYearOf = [
         },
         "events": [
             {
+                "label": "Pangaea splits",
+                "time": {
+                    "unit": "year",
+                    "value": -66000000
+                }
+            },
+            {
                 "label": "Pangaea forms",
                 "time": {
                     "unit": "year",

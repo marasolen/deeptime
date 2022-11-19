@@ -10,7 +10,7 @@ const config = {
     }
 };
 
-const data = placeholdersYearOf;
+const data = eoasLabData;
 
 let chart;
 
@@ -19,7 +19,7 @@ const setContainerSize = () => {
     config.containerWidth = window.innerWidth * 0.96;
 
     config.margin.right = 60;
-    config.margin.left = 60;
+    config.margin.left = 100;
 
     if (config.containerWidth > config.containerHeight) {
         const lrMargin = (config.containerWidth - config.containerHeight) / 2;

@@ -1,5 +1,7 @@
+const animationDuration = 1;
+
 class AlignedMultiTieredTimeline {
-    config; origData; data; events;
+    config; origData; data; events; eventConnecters;
 
     width; height;
 
@@ -90,12 +92,37 @@ class AlignedMultiTieredTimeline {
 
             if (lastEvent) {
                 vis.events.push({ label: lastEvent.label, time: lastEvent.time, parent: d.uuid,
-                    yTime: vis.getTimeInYears(d.time) });
+                    yTime: vis.getTimeInYears(d.time), copy: true });
+
+                vis.events.push(...lastEvent.events.map(e => {
+                    return {label: e.label, time: e.time, parent: d.uuid, yTime: vis.getTimeInYears(d.time), copy: true}
+                }));
             }
+
             vis.events.push(...d.events.map(e => {
-                return {label: e.label, time: e.time, parent: d.uuid, yTime: vis.getTimeInYears(d.time)};
+                return {label: e.label, time: e.time, parent: d.uuid, yTime: vis.getTimeInYears(d.time), copy: false};
             }));
+
+            vis.events.push({label: d.label, time: d.time, parent: d.uuid, yTime: vis.getTimeInYears(d.time), copy: false})
+
             lastEvent = d;
+        });
+
+        vis.eventConnecters = [];
+        let eventPairs = {};
+
+        vis.events.forEach(e => {
+            if (e.label in eventPairs) {
+                eventPairs[e.label].push(e);
+            } else {
+                eventPairs[e.label] = [e];
+            }
+        });
+
+        Object.values(eventPairs).forEach(eArr => {
+            if (eArr.length > 1) {
+                vis.eventConnecters.push({start: eArr[0], end: eArr[1]});
+            }
         });
 
         const minFloor = Math.pow(10, Math.floor(Math.log10(min)));
@@ -106,12 +133,25 @@ class AlignedMultiTieredTimeline {
             .range([vis.height, 0]);
 
         // Initialize axes
-        data.forEach(d => {
+        let lastTime = null;
+        vis.data.forEach(d => {
             let ticks = [];
-            const time = vis.getTimeInYears(d.time);
+            const thisTime = vis.getTimeInYears(d.time);
+            let time;
+            let numTicks;
 
-            for (let i = 1; i <= 5; i++) {
-                ticks.push(time * i / 5);
+            if (lastTime) {
+                numTicks = Math.floor(thisTime / lastTime);
+                time = lastTime;
+            } else {
+                numTicks = 6;
+                time = thisTime / numTicks;
+            }
+
+            lastTime = thisTime;
+
+            for (let i = 1; i <= numTicks; i++) {
+                ticks.push(time * i);
             }
 
             vis.xAxes[d.uuid] = d3.axisBottom(vis.xScales[d.uuid])
@@ -183,26 +223,17 @@ class AlignedMultiTieredTimeline {
                 .attr('transform', `translate(0,${vis.yScale(vis.getTimeInYears(d.time))})`);
         });
 
-        vis.chart.selectAll('.axis-title')
-            .data(vis.data)
-            .join("text")
-            .attr('class', 'axis-title')
-            .attr('x', 0)
-            .attr('y', d => vis.yScale(vis.getTimeInYears(d.time)) + 20)
-            .attr('dy', '.71em')
-            .style('text-anchor', 'start')
-            .text(d =>d.label);
-
         // Append y-axis group and move it to the right of the chart
         vis.yAxisG
             .attr('class', 'axis y-axis')
             .attr('transform', `translate(${vis.width}, 0)`);
 
         vis.chart.selectAll('.y-axis-title')
-            .attr('y', -20)
+            .attr('y', -36)
             .attr('x', vis.width + 30)
             .attr('dy', '.71em')
             .style('text-anchor', 'end')
+            .style("font-size", "30px")
             .text('Years since event');
 
         vis.renderVis();
@@ -217,41 +248,80 @@ class AlignedMultiTieredTimeline {
         vis.chart.selectAll(".part-to-whole")
             .data(vis.areas)
             .join("path")
+            .transition()
+            .duration(animationDuration)
             .attr("class", "part-to-whole")
             .attr("d", a => vis.areaGen(a))
             .attr("fill", "blue")
-            .attr("stroke", "black")
-            .attr("opacity", 0.1);
+            .attr("stroke", "red")
+            .attr("stroke-with", 2)
+            .attr("stroke-opacity", 0.2)
+            .attr("fill-opacity", 0.1);
 
-        vis.data.forEach(d => {
-            const xScale = vis.xScales[d.uuid];
-            const y = vis.yScale(vis.getTimeInYears(d.time));
-            const className = d.label.replaceAll(" ", "").replaceAll(".", "");
-        });
         vis.chart.selectAll(".event-dot")
             .data(vis.events)
             .join("circle")
+            .transition()
+            .duration(animationDuration)
             .attr("class", "event-dot")
             .attr("cx", e => vis.xScales[e.parent](vis.getTimeInYears(e.time)))
             .attr("cy", e => vis.yScale(e.yTime))
             .attr("r", 4)
             .attr("fill", "red")
-            .attr("stroke", "none");
+            .attr("stroke", "none")
+            .attr("opacity", d => d.copy ? 0.4 : 1);
 
         vis.chart.selectAll(".event-text")
-            .data(vis.events)
+            .data(vis.events.filter(d => !d.copy))
             .join("text")
+            .transition()
+            .duration(animationDuration)
             .attr("class", "event-text")
             .attr("x", e => vis.xScales[e.parent](vis.getTimeInYears(e.time)))
-            .attr("y", e => vis.yScale(e.yTime) - 11)
+            .attr("y", (e, i) => vis.yScale(e.yTime) - ((i % 4 + 1) * 15))
             .style('text-anchor', 'middle')
-            .style("font-size", "11px")
+            .style("font-size", "15px")
             .text(e => e.label);
 
+        vis.chart.selectAll(".event-line")
+            .data(vis.events.filter(d => !d.copy))
+            .join("line")
+            .transition()
+            .duration(animationDuration)
+            .attr("class", "event-line")
+            .attr("x1", e => vis.xScales[e.parent](vis.getTimeInYears(e.time)))
+            .attr("y1", (e, i) => vis.yScale(e.yTime))
+            .attr("x2", e => vis.xScales[e.parent](vis.getTimeInYears(e.time)))
+            .attr("y2", (e, i) => vis.yScale(e.yTime) - ((i % 4 + 1) * 15 - 1))
+            .style("stroke", "red")
+            .style("stroke-width", 2)
+            .attr("stroke-opacity", 0.2);
+
+        vis.chart.selectAll(".event-connecter")
+            .data(vis.eventConnecters)
+            .join("line")
+            .transition()
+            .duration(animationDuration)
+            .attr("class", "event-line")
+            .attr("x1", e => vis.xScales[e.start.parent](vis.getTimeInYears(e.start.time)))
+            .attr("y1", (e, i) => vis.yScale(e.start.yTime))
+            .attr("x2", e => vis.xScales[e.end.parent](vis.getTimeInYears(e.end.time)))
+            .attr("y2", (e, i) => vis.yScale(e.end.yTime))
+            .style("stroke", "red")
+            .style("stroke-width", 2)
+            .attr("stroke-opacity", 0.2);
+
         vis.data.forEach(d => {
-            vis.xAxisGs[d.uuid].call(vis.xAxes[d.uuid]);
+            vis.xAxisGs[d.uuid]
+                .transition()
+                .duration(animationDuration)
+                .call(vis.xAxes[d.uuid]);
         })
-        vis.yAxisG.call(vis.yAxis);
+
+        vis.yAxisG
+            .transition()
+            .duration(animationDuration)
+            .call(vis.yAxis);
     }
 
     getTimeInYears({unit: unit, value: value}) {
