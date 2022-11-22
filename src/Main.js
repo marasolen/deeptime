@@ -10,9 +10,71 @@ const config = {
     }
 };
 
-const data = eoasLabData;
+const numSteps = 10;
+
+const processData = (data) => {
+    const logTimes = data.map(d => Math.log10(d.time.value));
+    const minLogTime = Math.min(...logTimes);
+    const maxLogTime = Math.max(...logTimes);
+
+    const logDiff = (maxLogTime - minLogTime) / (numSteps - 1);
+
+    let ideals = [];
+    for (let i = 0; i < numSteps; i++) {
+        ideals.push(Math.pow(10, minLogTime + logDiff * i));
+    }
+
+    let reals = [];
+    ideals.forEach(y => {
+        let bestMultDiff = 100;
+        let bestEvent;
+        data.forEach(d => {
+            let multDiff = d.time.value / y;
+            multDiff = multDiff >= 1 ? multDiff : 1 / multDiff;
+            if (multDiff < bestMultDiff) {
+                bestMultDiff = multDiff;
+                bestEvent = d;
+            }
+        });
+        reals.push(bestEvent);
+    });
+
+    reals = [...new Set(reals)];
+
+    let lastEvent;
+    reals.forEach(e => {
+        let events = [];
+        data.forEach(d => {
+            const lateEnough = lastEvent ? d.time.value > lastEvent.time.value : true;
+            const earlyEnough = d.time.value < e.time.value;
+            if (lateEnough && earlyEnough) {
+                events.push(d);
+            }
+        });
+        e.events = events;
+        lastEvent = e;
+    });
+
+    return reals;
+}
+
+const data = processData(eoasLabData);
 
 let chart;
+
+const setButtonFunctions = () => {
+    d3.select("#reset").on("click", () => {
+        chart.reset();
+    })
+
+    d3.select("#back").on("click", () => {
+        chart.back();
+    })
+
+    d3.select("#next").on("click", () => {
+        chart.next();
+    })
+};
 
 const setContainerSize = () => {
     config.containerHeight = window.innerHeight * 0.96;
@@ -30,6 +92,9 @@ const setContainerSize = () => {
 
 window.addEventListener('load', () => {
     globalLogBook.addLog(logLevel.Info, "page loaded");
+
+    setButtonFunctions();
+
     setContainerSize();
     chart = new AlignedMultiTieredTimeline(config, data);
 });
@@ -38,5 +103,5 @@ window.addEventListener('resize', (event) => {
     globalLogBook.addLog(logLevel.Info, "resize");
     setContainerSize();
     chart.config = config;
-    chart.updateVis();
+    chart.setupChart();
 });

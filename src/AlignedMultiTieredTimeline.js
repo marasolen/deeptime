@@ -17,6 +17,7 @@ class AlignedMultiTieredTimeline {
 
     areaGen; areas = [];
 
+    minFloor; maxCeil;
 
     constructor(config, data) {
         this.config = config;
@@ -53,15 +54,11 @@ class AlignedMultiTieredTimeline {
         vis.chart.append('text')
             .attr('class', 'y-axis-title');
 
-        vis.updateVis();
+        vis.updateData();
     }
 
-    updateVis() {
+    updateData() {
         const vis = this;
-
-        // Calculate inner chart size. Margin specifies the space around the actual chart.
-        vis.width = vis.config.containerWidth - vis.config.margin.left - vis.config.margin.right;
-        vis.height = vis.config.containerHeight - vis.config.margin.top - vis.config.margin.bottom;
 
         // Error checks
         if (data.length === 0) {
@@ -72,10 +69,8 @@ class AlignedMultiTieredTimeline {
         vis.data = vis.origData;
         vis.nextUuid = 0;
 
-        // Initialize scales
         vis.events = [];
         vis.xScales = {};
-        vis.xAxes = {};
 
         let min = vis.getTimeInYears(vis.data[0].time);
         let max = vis.getTimeInYears(vis.data[0].time);
@@ -87,8 +82,7 @@ class AlignedMultiTieredTimeline {
 
             d.uuid = vis.nextUuid++;
             vis.xScales[d.uuid] = d3.scaleLinear()
-                .domain([vis.getTimeInYears(d.time), 0])
-                .range([0, vis.width]);
+                .domain([vis.getTimeInYears(d.time), 0]);
 
             if (lastEvent) {
                 vis.events.push({ label: lastEvent.label, time: lastEvent.time, parent: d.uuid,
@@ -125,11 +119,29 @@ class AlignedMultiTieredTimeline {
             }
         });
 
-        const minFloor = Math.pow(10, Math.floor(Math.log10(min)));
-        const maxCeil = Math.pow(10, Math.ceil(Math.log10(max)));
+        vis.minFloor = Math.pow(10, Math.floor(Math.log10(min)));
+        vis.maxCeil = Math.pow(10, Math.ceil(Math.log10(max)));
 
         vis.yScale
-            .domain([minFloor, maxCeil])
+            .domain([vis.minFloor, vis.maxCeil])
+
+        vis.setupChart()
+    }
+
+    setupChart() {
+        const vis = this;
+
+        // Calculate inner chart size. Margin specifies the space around the actual chart.
+        vis.width = vis.config.containerWidth - vis.config.margin.left - vis.config.margin.right;
+        vis.height = vis.config.containerHeight - vis.config.margin.top - vis.config.margin.bottom;
+
+        vis.xAxes = {};
+
+        Object.keys(vis.xScales).forEach(k => {
+            vis.xScales[k].range([0, vis.width])
+        })
+
+        vis.yScale
             .range([vis.height, 0]);
 
         // Initialize axes
@@ -164,7 +176,7 @@ class AlignedMultiTieredTimeline {
         });
 
         vis.yAxis.scale(vis.yScale)
-            .ticks(Math.ceil(Math.log10(maxCeil) - Math.log10(minFloor)))
+            .ticks(Math.ceil(Math.log10(vis.maxCeil) - Math.log10(vis.minFloor)))
             .tickFormat(v => {
                 return d3.format(".3s")(v)
                     .replace("M", "m")
@@ -322,6 +334,18 @@ class AlignedMultiTieredTimeline {
             .transition()
             .duration(animationDuration)
             .call(vis.yAxis);
+    }
+
+    reset() {
+        console.log("reset");
+    }
+
+    back() {
+        console.log("back");
+    }
+
+    next() {
+        console.log("next");
     }
 
     getTimeInYears({unit: unit, value: value}) {
