@@ -393,6 +393,11 @@ class AlignedMultiTieredTimeline {
     reset() {
         const vis = this;
 
+        console.log(vis.currentlyExecuting);
+        if (vis.currentlyExecuting) {
+            return;
+        }
+
         vis.updateData();
         vis.step = 0;
 
@@ -423,8 +428,9 @@ class AlignedMultiTieredTimeline {
         } else if (vis.step > 0 && vis.step < vis.lastEventSet) {
             vis.step++;
             vis.stepAnimationForward();
-        } else {
+        } else if (vis.step > 0 && vis.step >= vis.lastEventSet) {
             vis.currentlyExecuting = false;
+            vis.reset();
         }
     }
 
@@ -506,8 +512,9 @@ class AlignedMultiTieredTimeline {
         } else if (vis.step < 0 && vis.step > -vis.lastEventSet) {
             vis.stepAnimationBackward();
             vis.step--;
-        } else {
+        } else if (vis.step < 0 && vis.step <= -vis.lastEventSet) {
             vis.currentlyExecuting = false;
+            vis.reset();
         }
     }
 
