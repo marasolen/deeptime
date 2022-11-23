@@ -1,7 +1,9 @@
-const animationDuration = 1;
+const animationDuration = 1000;
 
 class AlignedMultiTieredTimeline {
-    config; origData; data; events; eventConnecters;
+    config; origData;
+
+    processedData = {}; data;
 
     width; height;
 
@@ -18,6 +20,8 @@ class AlignedMultiTieredTimeline {
     areaGen; areas = [];
 
     minFloor; maxCeil;
+
+    lastEventSet;
 
     constructor(config, data) {
         this.config = config;
@@ -61,22 +65,24 @@ class AlignedMultiTieredTimeline {
         const vis = this;
 
         // Error checks
-        if (data.length === 0) {
-            globalLogBook.addLog(logLevel.Error, "data was empty");
+        if (vis.origData.length === 0) {
             return;
         }
 
-        vis.data = vis.origData;
+        vis.processedData.data = vis.origData;
         vis.nextUuid = 0;
 
-        vis.events = [];
+        vis.processedData.events = [];
         vis.xScales = {};
 
-        let min = vis.getTimeInYears(vis.data[0].time);
-        let max = vis.getTimeInYears(vis.data[0].time);
+        let min = vis.getTimeInYears(vis.processedData.data[0].time);
+        let max = vis.getTimeInYears(vis.processedData.data[0].time);
 
         let lastEvent;
-        vis.data.forEach(d => {
+        vis.processedData.data.forEach((d, i) => {
+            const set = i + 1;
+            vis.lastEventSet = set;
+
             min = Math.min(min, vis.getTimeInYears(d.time));
             max = Math.max(vis.getTimeInYears(d.time));
 
@@ -84,28 +90,35 @@ class AlignedMultiTieredTimeline {
             vis.xScales[d.uuid] = d3.scaleLinear()
                 .domain([vis.getTimeInYears(d.time), 0]);
 
-            if (lastEvent) {
-                vis.events.push({ label: lastEvent.label, time: lastEvent.time, parent: d.uuid,
-                    yTime: vis.getTimeInYears(d.time), copy: true });
+            d.set = set;
 
-                vis.events.push(...lastEvent.events.map(e => {
-                    return {label: e.label, time: e.time, parent: d.uuid, yTime: vis.getTimeInYears(d.time), copy: true}
+            if (lastEvent) {
+                vis.processedData.events.push({ label: lastEvent.label, time: lastEvent.time, parent: d.uuid,
+                    yTime: vis.getTimeInYears(d.time), copy: true, set: set, otherYTime: vis.getTimeInYears(lastEvent.time),
+                    realYTime: vis.getTimeInYears(d.time), otherParent: lastEvent.uuid, realParent: d.uuid });
+
+                vis.processedData.events.push(...lastEvent.events.map(e => {
+                    return {label: e.label, time: e.time, parent: d.uuid, yTime: vis.getTimeInYears(d.time), copy: true,
+                        set: set, otherYTime: vis.getTimeInYears(lastEvent.time), realYTime: vis.getTimeInYears(d.time),
+                        otherParent: lastEvent.uuid, realParent: d.uuid}
                 }));
             }
 
-            vis.events.push(...d.events.map(e => {
-                return {label: e.label, time: e.time, parent: d.uuid, yTime: vis.getTimeInYears(d.time), copy: false};
+            vis.processedData.events.push(...d.events.map((e, i) => {
+                return {label: e.label, time: e.time, parent: d.uuid, yTime: vis.getTimeInYears(d.time), copy: false,
+                    set: set, labelLevel: vis.processedData.events.length + i};
             }));
 
-            vis.events.push({label: d.label, time: d.time, parent: d.uuid, yTime: vis.getTimeInYears(d.time), copy: false})
+            vis.processedData.events.push({label: d.label, time: d.time, parent: d.uuid, yTime: vis.getTimeInYears(d.time),
+                copy: false, set: set, labelLevel: vis.processedData.events.length + i})
 
             lastEvent = d;
         });
 
-        vis.eventConnecters = [];
+        vis.processedData.eventConnectors = [];
         let eventPairs = {};
 
-        vis.events.forEach(e => {
+        vis.processedData.events.forEach(e => {
             if (e.label in eventPairs) {
                 eventPairs[e.label].push(e);
             } else {
@@ -114,8 +127,21 @@ class AlignedMultiTieredTimeline {
         });
 
         Object.values(eventPairs).forEach(eArr => {
-            if (eArr.length > 1) {
-                vis.eventConnecters.push({start: eArr[0], end: eArr[1]});
+            if (eArr.length === 2) {
+                const copy = eArr[0].copy ? eArr[0] : eArr[1];
+                const nonCopy = eArr[0].copy ? eArr[1] : eArr[0];
+
+                if (nonCopy.set !== vis.lastEventSet) {
+                    nonCopy.otherYTime = copy.yTime;
+                    nonCopy.realYTime = nonCopy.yTime;
+                    nonCopy.otherParent = copy.parent;
+                    nonCopy.realParent = nonCopy.parent;
+                }
+
+                vis.processedData.eventConnectors.push({
+                    start: nonCopy, end: copy,
+                    constStart: nonCopy, constEnd: copy,
+                    sets: [nonCopy.set, copy.set]});
             }
         });
 
@@ -123,12 +149,14 @@ class AlignedMultiTieredTimeline {
         vis.maxCeil = Math.pow(10, Math.ceil(Math.log10(max)));
 
         vis.yScale
-            .domain([vis.minFloor, vis.maxCeil])
+            .domain([vis.minFloor, vis.maxCeil]);
+
+        vis.data = vis.processedData;
 
         vis.setupChart()
     }
 
-    setupChart() {
+    setupChart(animationDuration) {
         const vis = this;
 
         // Calculate inner chart size. Margin specifies the space around the actual chart.
@@ -146,7 +174,7 @@ class AlignedMultiTieredTimeline {
 
         // Initialize axes
         let lastTime = null;
-        vis.data.forEach(d => {
+        vis.data.data.forEach(d => {
             let ticks = [];
             const thisTime = vis.getTimeInYears(d.time);
             let time;
@@ -185,22 +213,23 @@ class AlignedMultiTieredTimeline {
 
         // Construct area data for showing part to whole relationships
         vis.areas = [];
-        vis.areaGen = data => {
+        vis.areaGen = a => {
             let path = "M";
-            data.forEach(p => {
+            a.data.forEach(p => {
                 path += p.x + "," + p.y + "L"
             });
             path = path.slice(0, -1) + "Z";
             return path;
         };
 
-        vis.data.forEach((curr, i) => {
-            if (i >= vis.data.length - 1) {
+        vis.data.data.forEach((curr, i) => {
+            if ((vis.step < 0 && curr.set >= vis.lastEventSet) ||
+                (vis.step >= 0 && i >= vis.data.data.length - 1)) {
                 return;
             }
 
             const currTime = vis.getTimeInYears(curr.time);
-            const nextTime = vis.getTimeInYears(vis.data[i + 1].time);
+            const nextTime = vis.getTimeInYears(vis.data.data[i + 1].time);
 
             const currY = vis.yScale(currTime);
             const nextY = vis.yScale(nextTime);
@@ -213,8 +242,12 @@ class AlignedMultiTieredTimeline {
                 { x: 0, y: currY }
             ];
 
-            vis.areas.push(data);
+            vis.areas.push({data: data, sets: [curr.set, vis.data.data[i + 1].set]});
         });
+
+        if (vis.step < 0) {
+            vis.areas.reverse();
+        }
 
         // Define size of SVG drawing area
         vis.svg
@@ -229,7 +262,7 @@ class AlignedMultiTieredTimeline {
         // Append x-axis groups and move them to the appropriate y positions
         vis.chart.selectAll('.x-axis').remove();
 
-        vis.data.forEach(d => {
+        vis.data.data.forEach(d => {
             vis.xAxisGs[d.uuid] = vis.chart.append('g')
                 .attr('class', 'x-axis')
                 .attr('transform', `translate(0,${vis.yScale(vis.getTimeInYears(d.time))})`);
@@ -248,13 +281,13 @@ class AlignedMultiTieredTimeline {
             .style("font-size", "30px")
             .text('Years since event');
 
-        vis.renderVis();
+        vis.renderVis(animationDuration);
     }
 
     /**
      * Bind data to visual elements (enter-update-exit/join) and update axes
      */
-    renderVis() {
+    renderVis(animationDuration) {
         const vis = this;
 
         vis.chart.selectAll(".part-to-whole")
@@ -271,7 +304,7 @@ class AlignedMultiTieredTimeline {
             .attr("fill-opacity", 0.1);
 
         vis.chart.selectAll(".event-dot")
-            .data(vis.events)
+            .data(vis.data.events)
             .join("circle")
             .transition()
             .duration(animationDuration)
@@ -284,37 +317,38 @@ class AlignedMultiTieredTimeline {
             .attr("opacity", d => d.copy ? 0.4 : 1);
 
         vis.chart.selectAll(".event-text")
-            .data(vis.events.filter(d => !d.copy))
+            .data(vis.data.events.filter(d => !d.copy))
             .join("text")
             .transition()
             .duration(animationDuration)
             .attr("class", "event-text")
             .attr("x", e => vis.xScales[e.parent](vis.getTimeInYears(e.time)))
-            .attr("y", (e, i) => vis.yScale(e.yTime) - ((i % 4 + 1) * 15))
+            .attr("y", e => vis.yScale(e.yTime) - ((e.labelLevel % 4 + 1) * 15))
+            .attr("opacity", d => d.hidden ? 0 : 1)
             .style('text-anchor', 'middle')
             .style("font-size", "15px")
             .text(e => e.label);
 
         vis.chart.selectAll(".event-line")
-            .data(vis.events.filter(d => !d.copy))
+            .data(vis.data.events.filter(d => !d.copy))
             .join("line")
             .transition()
             .duration(animationDuration)
             .attr("class", "event-line")
             .attr("x1", e => vis.xScales[e.parent](vis.getTimeInYears(e.time)))
-            .attr("y1", (e, i) => vis.yScale(e.yTime))
+            .attr("y1", e => vis.yScale(e.yTime))
             .attr("x2", e => vis.xScales[e.parent](vis.getTimeInYears(e.time)))
-            .attr("y2", (e, i) => vis.yScale(e.yTime) - ((i % 4 + 1) * 15 - 1))
+            .attr("y2", e => vis.yScale(e.yTime) - ((e.labelLevel % 4 + 1) * 15 - 1))
             .style("stroke", "red")
             .style("stroke-width", 2)
-            .attr("stroke-opacity", 0.2);
+            .attr("stroke-opacity", d => d.hidden ? 0 : 0.2);
 
-        vis.chart.selectAll(".event-connecter")
-            .data(vis.eventConnecters)
+        vis.chart.selectAll(".event-connector")
+            .data(vis.data.eventConnectors)
             .join("line")
             .transition()
             .duration(animationDuration)
-            .attr("class", "event-line")
+            .attr("class", "event-connector")
             .attr("x1", e => vis.xScales[e.start.parent](vis.getTimeInYears(e.start.time)))
             .attr("y1", (e, i) => vis.yScale(e.start.yTime))
             .attr("x2", e => vis.xScales[e.end.parent](vis.getTimeInYears(e.end.time)))
@@ -323,29 +357,22 @@ class AlignedMultiTieredTimeline {
             .style("stroke-width", 2)
             .attr("stroke-opacity", 0.2);
 
-        vis.data.forEach(d => {
-            vis.xAxisGs[d.uuid]
-                .transition()
-                .duration(animationDuration)
-                .call(vis.xAxes[d.uuid]);
+        vis.data.data.forEach((d, i) => {
+            if ((vis.step < 0 && i < 2) || (vis.step >= 0 && i === vis.data.data.length - 1)) {
+                vis.xAxisGs[d.uuid]
+                    .transition()
+                    .duration(animationDuration)
+                    .call(vis.xAxes[d.uuid]);
+            } else {
+                vis.xAxisGs[d.uuid]
+                    .call(vis.xAxes[d.uuid]);
+            }
         })
 
         vis.yAxisG
             .transition()
             .duration(animationDuration)
             .call(vis.yAxis);
-    }
-
-    reset() {
-        console.log("reset");
-    }
-
-    back() {
-        console.log("back");
-    }
-
-    next() {
-        console.log("next");
     }
 
     getTimeInYears({unit: unit, value: value}) {
@@ -357,5 +384,184 @@ class AlignedMultiTieredTimeline {
             default:
                 return value;
         }
+    }
+
+    // Animation code
+    step = 0;
+    currentlyExecuting = false;
+
+    reset() {
+        const vis = this;
+
+        vis.updateData();
+        vis.step = 0;
+
+        document.getElementById("back").disabled = false;
+        document.getElementById("next").disabled = false;
+    }
+
+    next() {
+        const vis = this;
+
+        if (vis.currentlyExecuting) {
+            return;
+        }
+        vis.currentlyExecuting = true;
+
+        if (vis.step === 0) {
+            document.getElementById("back").disabled = true;
+
+            vis.data = {
+                data: vis.processedData.data.filter(d => d.set === 1),
+                events: vis.processedData.events.filter(e => e.set === 1),
+                eventConnectors: []
+            };
+
+            vis.step = 1;
+            vis.setupChart(0);
+            vis.currentlyExecuting = false;
+        } else if (vis.step > 0 && vis.step < vis.lastEventSet) {
+            vis.step++;
+            vis.stepAnimationForward();
+        } else {
+            vis.currentlyExecuting = false;
+        }
+    }
+
+    stepAnimationForward() {
+        const vis = this;
+
+        const funcMap = [
+            vis.copyDotsAndLinesAppearForward,
+            vis.timelineAppearsDotsMoveLinesExtendForward,
+            vis.dotsAppearForward
+        ];
+
+        for (let i = 0; i < funcMap.length; i++) {
+            setTimeout(() => funcMap[i](vis), Math.max(0, (i - 1) * animationDuration));
+        }
+    }
+
+    copyDotsAndLinesAppearForward(vis) {
+        let newDots = vis.processedData.events
+            .filter(d => d.set === vis.step && d.copy);
+
+        newDots.forEach(d => {
+            d.parent = d.otherParent;
+            d.yTime = d.otherYTime;
+        });
+
+        let newEventConnectors = vis.processedData.eventConnectors
+            .filter(d => d.sets[0] === vis.step - 1 && d.sets[1] === vis.step);
+
+        vis.data.events.push(...newDots);
+        vis.data.eventConnectors.push(...newEventConnectors);
+
+        vis.setupChart(0);
+    }
+
+    timelineAppearsDotsMoveLinesExtendForward(vis) {
+        vis.data.data.push(vis.processedData.data[vis.step - 1]);
+
+        vis.data.events.forEach(d => {
+            if (d.copy) {
+                d.parent = d.realParent;
+                d.yTime = d.realYTime;
+            }
+        });
+
+        vis.setupChart(animationDuration);
+    }
+
+    dotsAppearForward(vis) {
+        let newDots = vis.processedData.events
+            .filter(d => d.set === vis.step && !d.copy);
+
+        vis.data.events.push(...newDots);
+
+        vis.setupChart(0);
+        vis.currentlyExecuting = false;
+    }
+
+    back() {
+        const vis = this;
+
+        if (vis.currentlyExecuting) {
+            return;
+        }
+        vis.currentlyExecuting = true;
+
+        if (vis.step === 0) {
+            document.getElementById("next").disabled = true;
+
+            vis.data = {
+                data: vis.processedData.data.filter(d => d.set === vis.lastEventSet),
+                events: vis.processedData.events.filter(e => e.set === vis.lastEventSet && !e.copy),
+                eventConnectors: []
+            };
+
+            vis.step = -1;
+            vis.setupChart(0);
+            vis.currentlyExecuting = false;
+        } else if (vis.step < 0 && vis.step > -vis.lastEventSet) {
+            vis.stepAnimationBackward();
+            vis.step--;
+        } else {
+            vis.currentlyExecuting = false;
+        }
+    }
+
+    stepAnimationBackward() {
+        const vis = this;
+
+        const funcMap = [
+            vis.copyDotsAndLinesAppearBackward,
+            vis.timelineAppearsDotsMoveLinesExtendBackward
+        ];
+
+        for (let i = 0; i < funcMap.length; i++) {
+            setTimeout(() => funcMap[i](vis), Math.max(0, (i - 1) * animationDuration));
+        }
+    }
+
+    copyDotsAndLinesAppearBackward(vis) {
+        const thisStep = vis.step + vis.lastEventSet + 1;
+        let newDots = vis.processedData.events
+            .filter(d => d.set === thisStep + 1 && d.copy);
+
+        newDots.push(...vis.processedData.events
+                .filter(d => d.set === thisStep && !d.copy));
+
+        newDots.forEach(d => {
+            if (!d.copy) {
+                d.parent = d.otherParent;
+                d.yTime = d.otherYTime;
+                d.hidden = true;
+            }
+        });
+
+        let newEventConnectors = vis.processedData.eventConnectors
+            .filter(d => d.sets[0] === thisStep && d.sets[1] === thisStep + 1);
+
+        vis.data.events.push(...newDots);
+        vis.data.eventConnectors.push(...newEventConnectors);
+
+        vis.setupChart(0);
+    }
+
+    timelineAppearsDotsMoveLinesExtendBackward(vis) {
+        const thisStep = vis.step + vis.lastEventSet + 1;
+        vis.data.data.unshift(vis.processedData.data[thisStep - 1]);
+
+        vis.data.events.forEach(d => {
+            if (!d.copy && d.set !== vis.lastEventSet) {
+                d.parent = d.realParent;
+                d.yTime = d.realYTime;
+                d.hidden = false;
+            }
+        });
+
+        vis.setupChart(animationDuration);
+        vis.currentlyExecuting = false;
     }
 }

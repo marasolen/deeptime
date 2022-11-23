@@ -91,8 +91,6 @@ const setContainerSize = () => {
 };
 
 window.addEventListener('load', () => {
-    globalLogBook.addLog(logLevel.Info, "page loaded");
-
     setButtonFunctions();
 
     setContainerSize();
@@ -100,8 +98,7 @@ window.addEventListener('load', () => {
 });
 
 window.addEventListener('resize', (event) => {
-    globalLogBook.addLog(logLevel.Info, "resize");
     setContainerSize();
     chart.config = config;
-    chart.setupChart();
+    chart.setupChart(0);
 });
