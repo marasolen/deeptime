@@ -428,9 +428,6 @@ class AlignedMultiTieredTimeline {
         } else if (vis.step > 0 && vis.step < vis.lastEventSet) {
             vis.step++;
             vis.stepAnimationForward();
-        } else if (vis.step > 0 && vis.step >= vis.lastEventSet) {
-            vis.currentlyExecuting = false;
-            vis.reset();
         }
     }
 
@@ -444,7 +441,15 @@ class AlignedMultiTieredTimeline {
         ];
 
         for (let i = 0; i < funcMap.length; i++) {
-            setTimeout(() => funcMap[i](vis), Math.max(0, (i - 1) * animationDuration));
+            setTimeout(() => {
+                funcMap[i](vis);
+                setTimeout(() => {
+                    if (vis.step > 0 && vis.step >= vis.lastEventSet) {
+                        vis.currentlyExecuting = false;
+                        vis.reset();
+                    }
+                }, animationDuration);
+            }, Math.max(0, (i - 1) * animationDuration));
         }
     }
 
@@ -512,9 +517,6 @@ class AlignedMultiTieredTimeline {
         } else if (vis.step < 0 && vis.step > -vis.lastEventSet) {
             vis.stepAnimationBackward();
             vis.step--;
-        } else if (vis.step < 0 && vis.step <= -vis.lastEventSet) {
-            vis.currentlyExecuting = false;
-            vis.reset();
         }
     }
 
@@ -527,7 +529,15 @@ class AlignedMultiTieredTimeline {
         ];
 
         for (let i = 0; i < funcMap.length; i++) {
-            setTimeout(() => funcMap[i](vis), Math.max(0, (i - 1) * animationDuration));
+            setTimeout(() => {
+                funcMap[i](vis);
+                setTimeout(() => {
+                    if (vis.step < 0 && vis.step <= -vis.lastEventSet) {
+                        vis.currentlyExecuting = false;
+                        vis.reset();
+                    }
+                }, animationDuration);
+            }, Math.max(0, (i - 1) * animationDuration));
         }
     }
 
