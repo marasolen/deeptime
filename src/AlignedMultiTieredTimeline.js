@@ -15,6 +15,8 @@ class AlignedMultiTieredTimeline {
 
     yAxisG; xAxisGs = {};
 
+    axisLines;
+
     nextUuid = 0;
 
     areaGen; areas = [];
@@ -207,6 +209,7 @@ class AlignedMultiTieredTimeline {
 
             vis.xAxes[d.uuid] = d3.axisBottom(vis.xScales[d.uuid])
                 .ticks(2)
+                .tickSize(10)
                 .tickFormat(v => {
                     return d3.format(".3s")(v)
                         .replace("M", "m")
@@ -219,11 +222,13 @@ class AlignedMultiTieredTimeline {
         vis.areaGen = a => {
             let path = "M";
             a.data.forEach(p => {
-                path += p.x + "," + p.y + "L"
+                path += p.x + "," + p.y + p.t
             });
             path = path.slice(0, -1) + "Z";
             return path;
         };
+
+        let nextInnerPath;
 
         vis.data.data.forEach((curr, i) => {
             if ((vis.step < 0 && curr.set >= vis.lastEventSet) ||
@@ -242,21 +247,63 @@ class AlignedMultiTieredTimeline {
             const nextY = vis.yScale(nextTime);
 
             const data = [
-                { x: currOffset, y: currY },
-                { x: vis.xScales[curr.uuid + 1](currTime) + nextOffset, y: nextY },
-                { x: vis.xScales[curr.uuid + 1](currTime) + nextOffset, y: nextY - 20 },
-                { x: vis.timelineWidth + nextOffset, y: nextY - 20 },
-                { x: vis.timelineWidth + nextOffset, y: nextY }
+                { x: currOffset, y: currY, t: "L" },
             ];
 
-            data.push(...[
-                { x: vis.timelineWidth + currOffset, y: currY },
-                { x: vis.xScales[curr.uuid + 1](currTime) + currOffset, y: currY },
-                { x: vis.xScales[curr.uuid + 1](currTime) + currOffset, y: currY }
-            ]);
+            for (let k = 1; k <= 10; k++) {
+                const inverseY = currY - k / 10 * (currY - nextY);
+
+                data.push({
+                    x: vis.xOffsetScale(vis.yScale.invert(inverseY)) + (1 - currTime / vis.yScale.invert(inverseY)) * vis.timelineWidth,
+                    y: inverseY,
+                    t: "L"
+                });
+            }
+
+            if ((vis.step >= 0 && curr.set < vis.lastEventSet - 1) ||
+                (vis.step < 0 && i < vis.data.data.length - 2)) {
+                const nextNextTime = vis.getTimeInYears(vis.data.data[i + 2].time);
+                const nextNextY = vis.yScale(nextNextTime);
+                for (let k = 1; k <= 10; k++) {
+                    const inverseY = nextY - k / 10 * (nextY - nextNextY);
+
+                    data.push({
+                        x: vis.xOffsetScale(vis.yScale.invert(inverseY)) + (1 - currTime / vis.yScale.invert(inverseY)) * vis.timelineWidth,
+                        y: inverseY,
+                        t: "L"
+                    });
+                }
+
+                if ((vis.step >= 0 && curr.set < vis.lastEventSet - 2) ||
+                    (vis.step < 0 && i < vis.data.data.length - 3)) {
+                    const nextNextNextTime = vis.getTimeInYears(vis.data.data[i + 3].time);
+                    const nextNextNextY = vis.yScale(nextNextNextTime);
+                    for (let k = 1; k <= 10; k++) {
+                        const inverseY = nextNextY - k / 10 * (nextNextY - nextNextNextY);
+
+                        data.push({
+                            x: vis.xOffsetScale(vis.yScale.invert(inverseY)) + (1 - currTime / vis.yScale.invert(inverseY)) * vis.timelineWidth,
+                            y: inverseY,
+                            t: "L"
+                        });
+                    }
+
+                    data.push(...[
+                        { x: vis.xOffsetScale(nextNextNextTime) + vis.timelineWidth, y: nextNextNextY, t: "L" }
+                    ]);
+                }
+
+                data.push(...[
+                    { x: vis.xOffsetScale(nextNextTime) + vis.timelineWidth, y: nextNextY, t: "L" }
+                ]);
+            }
 
             data.push(...[
-                { x: currOffset, y: currY }
+                { x: vis.timelineWidth + nextOffset, y: nextY, t: "L" },
+                { x: vis.timelineWidth + currOffset, y: currY, t: "L" },
+                { x: vis.xScales[curr.uuid + 1](currTime) + currOffset, y: currY, t: "L" },
+                { x: vis.xScales[curr.uuid + 1](currTime) + currOffset, y: currY, t: "L" },
+                { x: currOffset, y: currY, t: "L" }
             ]);
 
             vis.areas.push({data: data, sets: [curr.set, vis.data.data[i + 1].set]});
@@ -265,6 +312,32 @@ class AlignedMultiTieredTimeline {
         if (vis.step < 0) {
             vis.areas.reverse();
         }
+
+        vis.axisLines = [];
+
+        vis.data.data.forEach((d, i) => {
+            vis.axisLines.push({
+                parent: d.uuid,
+                time: d.time,
+                colour: i,
+            });
+
+            if (i > 0) {
+                vis.axisLines.push({
+                    parent: d.uuid,
+                    time: vis.data.data[i - 1].time,
+                    colour: i - 1,
+                });
+            }
+
+            if (i > 1) {
+                vis.axisLines.push({
+                    parent: d.uuid,
+                    time: vis.data.data[i - 2].time,
+                    colour: i - 2,
+                });
+            }
+        });
 
         // Define size of SVG drawing area
         vis.svg
@@ -290,7 +363,7 @@ class AlignedMultiTieredTimeline {
     }
 
     /**
-     * Bind data to visual elements (enter-update-exit/join) and update axes
+     * Bind data to visual elements and update axes
      */
     renderVis(animationDuration) {
         const vis = this;
@@ -311,11 +384,25 @@ class AlignedMultiTieredTimeline {
             .duration(animationDuration)
             .attr("class", "part-to-whole")
             .attr("d", a => vis.areaGen(a))
-            .attr("fill", (_, i) => areaColours(i / 7))
-            .attr("stroke", (_, i) => areaColours(i / 7))
+            .attr("fill", (_, i) => areaColours(i))
+            .attr("stroke", (_, i) => "none")
             .attr("stroke-width", 3)
             .attr("stroke-opacity", 0.4)
-            .attr("fill-opacity", 0.1);
+            .attr("fill-opacity", 0.3);
+
+        vis.chart.selectAll(".axis-lines-colour")
+            .data(vis.axisLines)
+            .join("line")
+            .transition()
+            .duration(animationDuration)
+            .attr("class", "axis-lines-colour")
+            .attr("x1", getEventX)
+            .attr("y1", e => vis.yScale(vis.getTimeInYears(vis.data.data[e.parent].time)))
+            .attr("x2", e => getEventX({parent: e.parent, time: {unit: "years", value: 0}}))
+            .attr("y2", e => vis.yScale(vis.getTimeInYears(vis.data.data[e.parent].time)))
+            .style("stroke", d => areaColours(d.colour))
+            .style("stroke-width", "10px")
+            .attr("stroke-opacity", 1);
 
         vis.chart.selectAll(".event-dot")
             .data(vis.data.events)
@@ -325,8 +412,8 @@ class AlignedMultiTieredTimeline {
             .attr("class", "event-dot")
             .attr("cx", getEventX)
             .attr("cy", e => vis.yScale(e.yTime))
-            .attr("r", 4)
-            .attr("fill", "red")
+            .attr("r", 8)
+            .attr("fill", "black")
             .attr("stroke", "none")
             .attr("opacity", d => d.copy ? 0.4 : 1);
 
