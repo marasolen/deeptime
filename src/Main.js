@@ -3,7 +3,7 @@ const config = {
     containerWidth: 800,
     containerHeight: 900,
     margin: {
-        top: 60,
+        top: 100,
         right: 60,
         bottom: 60,
         left: 60
@@ -23,6 +23,26 @@ const processData = (data) => {
     for (let i = 0; i < numSteps; i++) {
         ideals.push(Math.pow(10, minLogTime + logDiff * i));
     }
+
+    ideals = [
+        100,
+        //316,
+        1000,
+        //3160,
+        10000,
+        //31600,
+        100000,
+        //316000,
+        1000000,
+        //3160000,
+        10000000,
+        //31600000,
+        100000000,
+        //316000000,
+        1000000000,
+        //3160000000,
+        10000000000
+    ];
 
     let reals = [];
     ideals.forEach(y => {
@@ -58,7 +78,7 @@ const processData = (data) => {
     return reals;
 }
 
-const data = processData(eoasLabData);
+const data = processData(eoasLabDataRoundedTrimmed);
 
 let chart;
 
@@ -83,11 +103,11 @@ const setContainerSize = () => {
     config.margin.right = 60;
     config.margin.left = 100;
 
-    if (config.containerWidth > config.containerHeight) {
+    /*if (config.containerWidth > config.containerHeight) {
         const lrMargin = (config.containerWidth - config.containerHeight) / 2;
         config.margin.right = lrMargin;
         config.margin.left = lrMargin;
-    }
+    }*/
 };
 
 window.addEventListener('load', () => {

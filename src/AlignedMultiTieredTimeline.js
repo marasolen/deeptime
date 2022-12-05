@@ -38,6 +38,8 @@ class AlignedMultiTieredTimeline {
 
         vis.yScale = d3.scaleLog();
 
+        vis.xOffsetScale = d3.scaleLog();
+
         vis.yAxis = d3.axisRight(vis.yScale);
 
         // Define size of SVG drawing area
@@ -151,6 +153,9 @@ class AlignedMultiTieredTimeline {
         vis.yScale
             .domain([vis.minFloor, vis.maxCeil]);
 
+        vis.xOffsetScale
+            .domain([vis.minFloor, vis.maxCeil]);
+
         vis.data = vis.processedData;
 
         vis.setupChart()
@@ -163,14 +168,20 @@ class AlignedMultiTieredTimeline {
         vis.width = vis.config.containerWidth - vis.config.margin.left - vis.config.margin.right;
         vis.height = vis.config.containerHeight - vis.config.margin.top - vis.config.margin.bottom;
 
+        vis.timelineWidth = 2 * vis.width / 2;
+        vis.timelineOffset = vis.width - vis.timelineWidth;
+
         vis.xAxes = {};
 
         Object.keys(vis.xScales).forEach(k => {
-            vis.xScales[k].range([0, vis.width])
+            vis.xScales[k].range([0, vis.timelineWidth])
         })
 
         vis.yScale
             .range([vis.height, 0]);
+
+        vis.xOffsetScale
+            .range([vis.timelineOffset, 0]);
 
         // Initialize axes
         let lastTime = null;
@@ -195,21 +206,13 @@ class AlignedMultiTieredTimeline {
             }
 
             vis.xAxes[d.uuid] = d3.axisBottom(vis.xScales[d.uuid])
-                .tickValues(ticks)
+                .ticks(2)
                 .tickFormat(v => {
                     return d3.format(".3s")(v)
                         .replace("M", "m")
                         .replace("G", "b");
                 });
         });
-
-        vis.yAxis.scale(vis.yScale)
-            .ticks(Math.ceil(Math.log10(vis.maxCeil) - Math.log10(vis.minFloor)))
-            .tickFormat(v => {
-                return d3.format(".3s")(v)
-                    .replace("M", "m")
-                    .replace("G", "b");
-            });
 
         // Construct area data for showing part to whole relationships
         vis.areas = [];
@@ -228,6 +231,10 @@ class AlignedMultiTieredTimeline {
                 return;
             }
 
+            const j = vis.step < 0 ? i + (vis.processedData.data.length - vis.data.data.length) : i;
+            const currOffset = vis.xOffsetScale(vis.getTimeInYears(curr.time));
+            const nextOffset = vis.xOffsetScale(vis.getTimeInYears(vis.data.data[i + 1].time));
+
             const currTime = vis.getTimeInYears(curr.time);
             const nextTime = vis.getTimeInYears(vis.data.data[i + 1].time);
 
@@ -235,12 +242,22 @@ class AlignedMultiTieredTimeline {
             const nextY = vis.yScale(nextTime);
 
             const data = [
-                { x: 0, y: currY },
-                { x: vis.xScales[curr.uuid + 1](currTime), y: nextY },
-                { x: vis.width, y: nextY },
-                { x: vis.width, y: currY },
-                { x: 0, y: currY }
+                { x: currOffset, y: currY },
+                { x: vis.xScales[curr.uuid + 1](currTime) + nextOffset, y: nextY },
+                { x: vis.xScales[curr.uuid + 1](currTime) + nextOffset, y: nextY - 20 },
+                { x: vis.timelineWidth + nextOffset, y: nextY - 20 },
+                { x: vis.timelineWidth + nextOffset, y: nextY }
             ];
+
+            data.push(...[
+                { x: vis.timelineWidth + currOffset, y: currY },
+                { x: vis.xScales[curr.uuid + 1](currTime) + currOffset, y: currY },
+                { x: vis.xScales[curr.uuid + 1](currTime) + currOffset, y: currY }
+            ]);
+
+            data.push(...[
+                { x: currOffset, y: currY }
+            ]);
 
             vis.areas.push({data: data, sets: [curr.set, vis.data.data[i + 1].set]});
         });
@@ -262,24 +279,12 @@ class AlignedMultiTieredTimeline {
         // Append x-axis groups and move them to the appropriate y positions
         vis.chart.selectAll('.x-axis').remove();
 
-        vis.data.data.forEach(d => {
+        vis.data.data.forEach((d, i) => {
+            const j = vis.step < 0 ? i + (vis.processedData.data.length - vis.data.data.length) : i;
             vis.xAxisGs[d.uuid] = vis.chart.append('g')
                 .attr('class', 'x-axis')
-                .attr('transform', `translate(0,${vis.yScale(vis.getTimeInYears(d.time))})`);
+                .attr('transform', `translate(${vis.xOffsetScale(vis.getTimeInYears(d.time))},${vis.yScale(vis.getTimeInYears(d.time))})`);
         });
-
-        // Append y-axis group and move it to the right of the chart
-        vis.yAxisG
-            .attr('class', 'axis y-axis')
-            .attr('transform', `translate(${vis.width}, 0)`);
-
-        vis.chart.selectAll('.y-axis-title')
-            .attr('y', -36)
-            .attr('x', vis.width + 30)
-            .attr('dy', '.71em')
-            .style('text-anchor', 'end')
-            .style("font-size", "30px")
-            .text('Years since event');
 
         vis.renderVis(animationDuration);
     }
@@ -290,6 +295,15 @@ class AlignedMultiTieredTimeline {
     renderVis(animationDuration) {
         const vis = this;
 
+        let areaColours = d3.scaleOrdinal(d3.schemeCategory10);
+
+        const getEventX = (e) => {
+            const parent = vis.step < 0 ? e.parent - (vis.processedData.data.length - vis.data.data.length) : e.parent;
+            const offset = vis.xOffsetScale(vis.getTimeInYears(vis.data.data[parent].time));
+            const position = vis.xScales[e.parent](vis.getTimeInYears(e.time));
+            return offset + position;
+        };
+
         vis.chart.selectAll(".part-to-whole")
             .data(vis.areas)
             .join("path")
@@ -297,10 +311,10 @@ class AlignedMultiTieredTimeline {
             .duration(animationDuration)
             .attr("class", "part-to-whole")
             .attr("d", a => vis.areaGen(a))
-            .attr("fill", "blue")
-            .attr("stroke", "red")
-            .attr("stroke-with", 2)
-            .attr("stroke-opacity", 0.2)
+            .attr("fill", (_, i) => areaColours(i / 7))
+            .attr("stroke", (_, i) => areaColours(i / 7))
+            .attr("stroke-width", 3)
+            .attr("stroke-opacity", 0.4)
             .attr("fill-opacity", 0.1);
 
         vis.chart.selectAll(".event-dot")
@@ -309,7 +323,7 @@ class AlignedMultiTieredTimeline {
             .transition()
             .duration(animationDuration)
             .attr("class", "event-dot")
-            .attr("cx", e => vis.xScales[e.parent](vis.getTimeInYears(e.time)))
+            .attr("cx", getEventX)
             .attr("cy", e => vis.yScale(e.yTime))
             .attr("r", 4)
             .attr("fill", "red")
@@ -322,8 +336,8 @@ class AlignedMultiTieredTimeline {
             .transition()
             .duration(animationDuration)
             .attr("class", "event-text")
-            .attr("x", e => vis.xScales[e.parent](vis.getTimeInYears(e.time)))
-            .attr("y", e => vis.yScale(e.yTime) - ((e.labelLevel % 4 + 1) * 15))
+            .attr("x", getEventX)
+            .attr("y", e => vis.yScale(e.yTime) - 15)
             .attr("opacity", d => d.hidden ? 0 : 1)
             .style('text-anchor', 'middle')
             .style("font-size", "15px")
@@ -335,10 +349,10 @@ class AlignedMultiTieredTimeline {
             .transition()
             .duration(animationDuration)
             .attr("class", "event-line")
-            .attr("x1", e => vis.xScales[e.parent](vis.getTimeInYears(e.time)))
+            .attr("x1", getEventX)
             .attr("y1", e => vis.yScale(e.yTime))
-            .attr("x2", e => vis.xScales[e.parent](vis.getTimeInYears(e.time)))
-            .attr("y2", e => vis.yScale(e.yTime) - ((e.labelLevel % 4 + 1) * 15 - 1))
+            .attr("x2", getEventX)
+            .attr("y2", e => vis.yScale(e.yTime) - 15)
             .style("stroke", "red")
             .style("stroke-width", 2)
             .attr("stroke-opacity", d => d.hidden ? 0 : 0.2);
@@ -349,16 +363,16 @@ class AlignedMultiTieredTimeline {
             .transition()
             .duration(animationDuration)
             .attr("class", "event-connector")
-            .attr("x1", e => vis.xScales[e.start.parent](vis.getTimeInYears(e.start.time)))
-            .attr("y1", (e, i) => vis.yScale(e.start.yTime))
-            .attr("x2", e => vis.xScales[e.end.parent](vis.getTimeInYears(e.end.time)))
-            .attr("y2", (e, i) => vis.yScale(e.end.yTime))
+            .attr("x1", e => getEventX(e.start))
+            .attr("y1", e => vis.yScale(e.start.yTime))
+            .attr("x2", e => getEventX(e.end))
+            .attr("y2", e => vis.yScale(e.end.yTime))
             .style("stroke", "red")
             .style("stroke-width", 2)
             .attr("stroke-opacity", 0.2);
 
         vis.data.data.forEach((d, i) => {
-            if ((vis.step < 0 && i < 2) || (vis.step >= 0 && i === vis.data.data.length - 1)) {
+            if ((vis.step < 0 && i < 1) || (vis.step >= 0 && i === vis.data.data.length - 1)) {
                 vis.xAxisGs[d.uuid]
                     .transition()
                     .duration(animationDuration)
@@ -368,11 +382,6 @@ class AlignedMultiTieredTimeline {
                     .call(vis.xAxes[d.uuid]);
             }
         })
-
-        vis.yAxisG
-            .transition()
-            .duration(animationDuration)
-            .call(vis.yAxis);
     }
 
     getTimeInYears({unit: unit, value: value}) {
@@ -393,7 +402,6 @@ class AlignedMultiTieredTimeline {
     reset() {
         const vis = this;
 
-        console.log(vis.currentlyExecuting);
         if (vis.currentlyExecuting) {
             return;
         }
