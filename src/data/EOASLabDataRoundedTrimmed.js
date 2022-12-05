@@ -42,7 +42,7 @@ const eoasLabDataRoundedTrimmed = [
         }
     },
     {
-        "label": "Ancient Egyptions",
+        "label": "Ancient Egyptians",
         "time": {
             "unit": "years",
             "value": 5170

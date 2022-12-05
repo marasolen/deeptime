@@ -424,7 +424,7 @@ class AlignedMultiTieredTimeline {
             .duration(animationDuration)
             .attr("class", "event-text")
             .attr("x", getEventX)
-            .attr("y", e => vis.yScale(e.yTime) - 15)
+            .attr("y", (e, i) => vis.yScale(e.yTime) - ((i % 4) + 1) * 15)
             .attr("opacity", d => d.hidden ? 0 : 1)
             .style('text-anchor', 'middle')
             .style("font-size", "15px")
@@ -439,7 +439,7 @@ class AlignedMultiTieredTimeline {
             .attr("x1", getEventX)
             .attr("y1", e => vis.yScale(e.yTime))
             .attr("x2", getEventX)
-            .attr("y2", e => vis.yScale(e.yTime) - 15)
+            .attr("y2", (e, i) => vis.yScale(e.yTime) - ((i % 4) + 1) * 15)
             .style("stroke", "red")
             .style("stroke-width", 2)
             .attr("stroke-opacity", d => d.hidden ? 0 : 0.2);

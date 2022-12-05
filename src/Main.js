@@ -78,7 +78,7 @@ const processData = (data) => {
     return reals;
 }
 
-const data = processData(eoasLabDataRoundedTrimmed);
+const data = processData(eoasLabDataRounded);
 
 let chart;
 
