@@ -88,7 +88,7 @@ const setButtonFunctions = () => {
     })
 
     d3.select("#back").on("click", () => {
-        chart.back();
+        //chart.back();
     })
 
     d3.select("#next").on("click", () => {

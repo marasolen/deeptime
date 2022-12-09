@@ -11,10 +11,6 @@ class AlignedMultiTieredTimeline {
 
     yScale; xScales = {};
 
-    yAxis; xAxes = {};
-
-    yAxisG; xAxisGs = {};
-
     axisLines;
 
     nextUuid = 0;
@@ -51,16 +47,12 @@ class AlignedMultiTieredTimeline {
 
         // Append group element that will contain our actual chart
         // and position it according to the given margin config
-        vis.chart = vis.svg.append('g')
+        vis.chartB = vis.svg.append('g')
             .attr('class', 'chart');
-
-        // Append y-axis group and move it to the right of the chart
-        vis.yAxisG = vis.chart.append('g')
-            .attr('class', 'axis y-axis');
-
-        // Append axis titles
-        vis.chart.append('text')
-            .attr('class', 'y-axis-title');
+        vis.chartA = vis.svg.append('g')
+            .attr('class', 'chart');
+        vis.chartE = vis.svg.append('g')
+            .attr('class', 'chart');
 
         vis.updateData();
     }
@@ -160,10 +152,10 @@ class AlignedMultiTieredTimeline {
 
         vis.data = vis.processedData;
 
-        vis.setupChart()
+        vis.setupChart(0)
     }
 
-    setupChart(animationDuration) {
+    setupChart(animationDuration, customAxisLines) {
         const vis = this;
 
         // Calculate inner chart size. Margin specifies the space around the actual chart.
@@ -172,8 +164,6 @@ class AlignedMultiTieredTimeline {
 
         vis.timelineWidth = 2 * vis.width / 2;
         vis.timelineOffset = vis.width - vis.timelineWidth;
-
-        vis.xAxes = {};
 
         Object.keys(vis.xScales).forEach(k => {
             vis.xScales[k].range([0, vis.timelineWidth])
@@ -184,6 +174,8 @@ class AlignedMultiTieredTimeline {
 
         vis.xOffsetScale
             .range([vis.timelineOffset, 0]);
+
+        console.log(vis.data)
 
         // Initialize axes
         let lastTime = null;
@@ -206,15 +198,6 @@ class AlignedMultiTieredTimeline {
             for (let i = 1; i <= numTicks; i++) {
                 ticks.push(time * i);
             }
-
-            vis.xAxes[d.uuid] = d3.axisBottom(vis.xScales[d.uuid])
-                .ticks(2)
-                .tickSize(10)
-                .tickFormat(v => {
-                    return d3.format(".3s")(v)
-                        .replace("M", "m")
-                        .replace("G", "b");
-                });
         });
 
         // Construct area data for showing part to whole relationships
@@ -228,15 +211,75 @@ class AlignedMultiTieredTimeline {
             return path;
         };
 
-        let nextInnerPath;
+        const generateArea = (data, currTime, i, num, totNum) => {
+            if (num > totNum) {
+                return data;
+            }
+
+            let nextTime;
+            let nextNextTime;
+
+            if ((vis.step >= 0 && i < vis.data.data.length - num) ||
+                (vis.step < 0 && i < vis.data.data.length - num)) {
+                nextTime = vis.getTimeInYears(vis.data.data[i + num - 1].time)
+                nextNextTime = vis.getTimeInYears(vis.data.data[i + num].time);
+            } else if ((vis.step >= 0 && i < vis.data.data.length - num + 1) ||
+                (vis.step < 0 && i < vis.data.data.length - num + 1)) {
+                nextTime = vis.getTimeInYears(vis.data.data[i + num - 1].time)
+                nextNextTime = nextTime;
+            } else {
+                let j = 2;
+                while (!vis.getTimeInYears(vis.data.data[i + num - j].time)) {
+                    if (num - j === 0) {
+                        return data;
+                    } else {
+                        j++;
+                    }
+                }
+                nextTime = vis.getTimeInYears(vis.data.data[i + num - j].time);
+                nextNextTime = nextTime;
+            }
+
+            const nextY = vis.yScale(nextTime);
+            const nextNextY = vis.yScale(nextNextTime);
+
+            for (let k = 1; k <= 10; k++) {
+                const inverseY = nextY - k / 10 * (nextY - nextNextY);
+
+                data.push({
+                    x: vis.xOffsetScale(vis.yScale.invert(inverseY)) + (1 - currTime / vis.yScale.invert(inverseY)) * vis.timelineWidth,
+                    y: inverseY,
+                    t: "L"
+                });
+            }
+
+            data = generateArea(data, currTime, i, num + 1, totNum);
+
+            for (let k = 10; k > 0; k--) {
+                const inverseY = nextY - k / 10 * (nextY - nextNextY);
+
+                data.push({
+                    x: vis.xOffsetScale(vis.yScale.invert(inverseY)) + vis.timelineWidth,
+                    y: inverseY,
+                    t: "L"
+                });
+            }
+
+            data.push({
+                x: vis.xOffsetScale(nextTime) + vis.timelineWidth,
+                y: nextNextY,
+                t: "L"
+            });
+
+            return data;
+        }
 
         vis.data.data.forEach((curr, i) => {
-            if ((vis.step < 0 && curr.set >= vis.lastEventSet) ||
+            if ((vis.step < 0 && i >= vis.data.data.length) ||
                 (vis.step >= 0 && i >= vis.data.data.length - 1)) {
                 return;
             }
 
-            const j = vis.step < 0 ? i + (vis.processedData.data.length - vis.data.data.length) : i;
             const currOffset = vis.xOffsetScale(vis.getTimeInYears(curr.time));
             const nextOffset = vis.xOffsetScale(vis.getTimeInYears(vis.data.data[i + 1].time));
 
@@ -246,7 +289,7 @@ class AlignedMultiTieredTimeline {
             const currY = vis.yScale(currTime);
             const nextY = vis.yScale(nextTime);
 
-            const data = [
+            let data = [
                 { x: currOffset, y: currY, t: "L" },
             ];
 
@@ -260,43 +303,7 @@ class AlignedMultiTieredTimeline {
                 });
             }
 
-            if ((vis.step >= 0 && curr.set < vis.lastEventSet - 1) ||
-                (vis.step < 0 && i < vis.data.data.length - 2)) {
-                const nextNextTime = vis.getTimeInYears(vis.data.data[i + 2].time);
-                const nextNextY = vis.yScale(nextNextTime);
-                for (let k = 1; k <= 10; k++) {
-                    const inverseY = nextY - k / 10 * (nextY - nextNextY);
-
-                    data.push({
-                        x: vis.xOffsetScale(vis.yScale.invert(inverseY)) + (1 - currTime / vis.yScale.invert(inverseY)) * vis.timelineWidth,
-                        y: inverseY,
-                        t: "L"
-                    });
-                }
-
-                if ((vis.step >= 0 && curr.set < vis.lastEventSet - 2) ||
-                    (vis.step < 0 && i < vis.data.data.length - 3)) {
-                    const nextNextNextTime = vis.getTimeInYears(vis.data.data[i + 3].time);
-                    const nextNextNextY = vis.yScale(nextNextNextTime);
-                    for (let k = 1; k <= 10; k++) {
-                        const inverseY = nextNextY - k / 10 * (nextNextY - nextNextNextY);
-
-                        data.push({
-                            x: vis.xOffsetScale(vis.yScale.invert(inverseY)) + (1 - currTime / vis.yScale.invert(inverseY)) * vis.timelineWidth,
-                            y: inverseY,
-                            t: "L"
-                        });
-                    }
-
-                    data.push(...[
-                        { x: vis.xOffsetScale(nextNextNextTime) + vis.timelineWidth, y: nextNextNextY, t: "L" }
-                    ]);
-                }
-
-                data.push(...[
-                    { x: vis.xOffsetScale(nextNextTime) + vis.timelineWidth, y: nextNextY, t: "L" }
-                ]);
-            }
+            data = generateArea(data, currTime, i, 2, 3);
 
             data.push(...[
                 { x: vis.timelineWidth + nextOffset, y: nextY, t: "L" },
@@ -313,31 +320,44 @@ class AlignedMultiTieredTimeline {
             vis.areas.reverse();
         }
 
-        vis.axisLines = [];
+        if (customAxisLines) {
+            vis.axisLines = customAxisLines;
+        } else {
+            vis.axisLines = [];
 
-        vis.data.data.forEach((d, i) => {
-            vis.axisLines.push({
-                parent: d.uuid,
-                time: d.time,
-                colour: i,
+            vis.data.data.forEach((d, i) => {
+
+                for (let j = 0; j < 10; j++) {
+                    vis.axisLines.push({
+                        parent: d.uuid,
+                        time: {unit: "years", value: (j + 1) * d.time.value / 10},
+                        startTime: {unit: "years", value: j * d.time.value / 10},
+                        colour: i,
+                        yTime: vis.yScale(vis.getTimeInYears(vis.data.data[i].time))
+                    });
+                }
+
+                if (i > 0) {
+                    vis.axisLines.push({
+                        parent: d.uuid,
+                        time: vis.data.data[i - 1].time,
+                        startTime: {unit: "years", value: 0},
+                        colour: i - 1,
+                        yTime: vis.yScale(vis.getTimeInYears(vis.data.data[i].time))
+                    });
+                }
+
+                if (i > 1) {
+                    vis.axisLines.push({
+                        parent: d.uuid,
+                        time: vis.data.data[i - 2].time,
+                        startTime: {unit: "years", value: 0},
+                        colour: i - 2,
+                        yTime: vis.yScale(vis.getTimeInYears(vis.data.data[i].time))
+                    });
+                }
             });
-
-            if (i > 0) {
-                vis.axisLines.push({
-                    parent: d.uuid,
-                    time: vis.data.data[i - 1].time,
-                    colour: i - 1,
-                });
-            }
-
-            if (i > 1) {
-                vis.axisLines.push({
-                    parent: d.uuid,
-                    time: vis.data.data[i - 2].time,
-                    colour: i - 2,
-                });
-            }
-        });
+        }
 
         // Define size of SVG drawing area
         vis.svg
@@ -346,18 +366,12 @@ class AlignedMultiTieredTimeline {
 
         // Append group element that will contain our actual chart
         // and position it according to the given margin config
-        vis.chart
+        vis.chartB
             .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
-
-        // Append x-axis groups and move them to the appropriate y positions
-        vis.chart.selectAll('.x-axis').remove();
-
-        vis.data.data.forEach((d, i) => {
-            const j = vis.step < 0 ? i + (vis.processedData.data.length - vis.data.data.length) : i;
-            vis.xAxisGs[d.uuid] = vis.chart.append('g')
-                .attr('class', 'x-axis')
-                .attr('transform', `translate(${vis.xOffsetScale(vis.getTimeInYears(d.time))},${vis.yScale(vis.getTimeInYears(d.time))})`);
-        });
+        vis.chartA
+            .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
+        vis.chartE
+            .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
 
         vis.renderVis(animationDuration);
     }
@@ -377,7 +391,7 @@ class AlignedMultiTieredTimeline {
             return offset + position;
         };
 
-        vis.chart.selectAll(".part-to-whole")
+        vis.chartB.selectAll(".part-to-whole")
             .data(vis.areas)
             .join("path")
             .transition()
@@ -385,26 +399,40 @@ class AlignedMultiTieredTimeline {
             .attr("class", "part-to-whole")
             .attr("d", a => vis.areaGen(a))
             .attr("fill", (_, i) => areaColours(i))
-            .attr("stroke", (_, i) => "none")
+            .attr("stroke", "none")
             .attr("stroke-width", 3)
             .attr("stroke-opacity", 0.4)
             .attr("fill-opacity", 0.3);
 
-        vis.chart.selectAll(".axis-lines-colour")
+        vis.chartA.selectAll(".axis-lines-colour-background")
+            .data(vis.axisLines)
+            .join("line")
+            .transition()
+            .duration(animationDuration)
+            .attr("class", "axis-lines-colour-background")
+            .attr("x1", e => getEventX(e))
+            .attr("y1", e => e.yTime)
+            .attr("x2", e => getEventX({parent: e.parent, time: e.startTime}))
+            .attr("y2", e => e.yTime)
+            .style("stroke", d => "black")
+            .style("stroke-width", "10px")
+            .attr("stroke-opacity", 1);
+
+        vis.chartA.selectAll(".axis-lines-colour")
             .data(vis.axisLines)
             .join("line")
             .transition()
             .duration(animationDuration)
             .attr("class", "axis-lines-colour")
-            .attr("x1", getEventX)
-            .attr("y1", e => vis.yScale(vis.getTimeInYears(vis.data.data[e.parent].time)))
-            .attr("x2", e => getEventX({parent: e.parent, time: {unit: "years", value: 0}}))
-            .attr("y2", e => vis.yScale(vis.getTimeInYears(vis.data.data[e.parent].time)))
+            .attr("x1", e => getEventX(e) + 1)
+            .attr("y1", e => e.yTime)
+            .attr("x2", e => getEventX({parent: e.parent, time: e.startTime}))
+            .attr("y2", e => e.yTime)
             .style("stroke", d => areaColours(d.colour))
             .style("stroke-width", "10px")
             .attr("stroke-opacity", 1);
 
-        vis.chart.selectAll(".event-dot")
+        vis.chartE.selectAll(".event-dot")
             .data(vis.data.events)
             .join("circle")
             .transition()
@@ -417,7 +445,7 @@ class AlignedMultiTieredTimeline {
             .attr("stroke", "none")
             .attr("opacity", d => d.copy ? 0.4 : 1);
 
-        vis.chart.selectAll(".event-text")
+        vis.chartE.selectAll(".event-text")
             .data(vis.data.events.filter(d => !d.copy))
             .join("text")
             .transition()
@@ -430,7 +458,7 @@ class AlignedMultiTieredTimeline {
             .style("font-size", "15px")
             .text(e => e.label);
 
-        vis.chart.selectAll(".event-line")
+        vis.chartE.selectAll(".event-line")
             .data(vis.data.events.filter(d => !d.copy))
             .join("line")
             .transition()
@@ -444,7 +472,7 @@ class AlignedMultiTieredTimeline {
             .style("stroke-width", 2)
             .attr("stroke-opacity", d => d.hidden ? 0 : 0.2);
 
-        vis.chart.selectAll(".event-connector")
+        vis.chartE.selectAll(".event-connector")
             .data(vis.data.eventConnectors)
             .join("line")
             .transition()
@@ -457,18 +485,6 @@ class AlignedMultiTieredTimeline {
             .style("stroke", "red")
             .style("stroke-width", 2)
             .attr("stroke-opacity", 0.2);
-
-        vis.data.data.forEach((d, i) => {
-            if ((vis.step < 0 && i < 1) || (vis.step >= 0 && i === vis.data.data.length - 1)) {
-                vis.xAxisGs[d.uuid]
-                    .transition()
-                    .duration(animationDuration)
-                    .call(vis.xAxes[d.uuid]);
-            } else {
-                vis.xAxisGs[d.uuid]
-                    .call(vis.xAxes[d.uuid]);
-            }
-        })
     }
 
     getTimeInYears({unit: unit, value: value}) {
@@ -486,10 +502,10 @@ class AlignedMultiTieredTimeline {
     step = 0;
     currentlyExecuting = false;
 
-    reset() {
+    reset(force) {
         const vis = this;
 
-        if (vis.currentlyExecuting) {
+        if (vis.currentlyExecuting && !force) {
             return;
         }
 
@@ -500,10 +516,10 @@ class AlignedMultiTieredTimeline {
         document.getElementById("next").disabled = false;
     }
 
-    next() {
+    next(force) {
         const vis = this;
 
-        if (vis.currentlyExecuting) {
+        if (vis.currentlyExecuting && !force) {
             return;
         }
         vis.currentlyExecuting = true;
@@ -523,6 +539,9 @@ class AlignedMultiTieredTimeline {
         } else if (vis.step > 0 && vis.step < vis.lastEventSet) {
             vis.step++;
             vis.stepAnimationForward();
+        } else if (vis.step >= vis.lastEventSet) {
+            vis.reset(true);
+            vis.next(true);
         }
     }
 
@@ -530,25 +549,22 @@ class AlignedMultiTieredTimeline {
         const vis = this;
 
         const funcMap = [
-            vis.copyDotsAndLinesAppearForward,
-            vis.timelineAppearsDotsMoveLinesExtendForward,
-            vis.dotsAppearForward
+            { func: vis.copyDotsAndLinesAndTimelinesAppearForward, time: 0 },
+            { func: vis.timelineAndDotsMoveLinesExtendForward, time: 1 },
+            { func: vis.timelineChunksForward, time: 4 },
+            { func: vis.dotsAppearForward, time: 0 },
         ];
 
+        let timeSum = 0;
         for (let i = 0; i < funcMap.length; i++) {
             setTimeout(() => {
-                funcMap[i](vis);
-                setTimeout(() => {
-                    if (vis.step > 0 && vis.step >= vis.lastEventSet) {
-                        vis.currentlyExecuting = false;
-                        vis.reset();
-                    }
-                }, animationDuration);
-            }, Math.max(0, (i - 1) * animationDuration));
+                funcMap[i].func(vis, funcMap[i].time);
+            }, Math.max(timeSum, i * 200));
+            timeSum += funcMap[i].time * animationDuration;
         }
     }
 
-    copyDotsAndLinesAppearForward(vis) {
+    copyDotsAndLinesAndTimelinesAppearForward(vis, time) {
         let newDots = vis.processedData.events
             .filter(d => d.set === vis.step && d.copy);
 
@@ -562,11 +578,20 @@ class AlignedMultiTieredTimeline {
 
         vis.data.events.push(...newDots);
         vis.data.eventConnectors.push(...newEventConnectors);
+        const customAxisLines = vis.axisLines;
+        const indexToCopy = customAxisLines.length - 3 + Math.max(0, 4 - vis.step);
 
-        vis.setupChart(0);
+        const copyAxis = JSON.parse(JSON.stringify(customAxisLines[indexToCopy]));
+        copyAxis.startTime.value = 0;
+
+        for (let i = 0; i < 10; i++) {
+            customAxisLines.unshift(JSON.parse(JSON.stringify(copyAxis)));
+        }
+
+        vis.setupChart(animationDuration * time, customAxisLines);
     }
 
-    timelineAppearsDotsMoveLinesExtendForward(vis) {
+    timelineAndDotsMoveLinesExtendForward(vis, time) {
         vis.data.data.push(vis.processedData.data[vis.step - 1]);
 
         vis.data.events.forEach(d => {
@@ -576,20 +601,48 @@ class AlignedMultiTieredTimeline {
             }
         });
 
-        vis.setupChart(animationDuration);
+        const customAxisLines = vis.axisLines;
+
+        for (let i = 0; i < 10; i++) {
+            customAxisLines[i].parent += 1;
+            customAxisLines[i].yTime = vis.yScale(vis.getTimeInYears(vis.data.data[customAxisLines[i].parent].time));
+        }
+
+        vis.setupChart(animationDuration * time, customAxisLines);
     }
 
-    dotsAppearForward(vis) {
+    timelineChunksForward(vis, time) {
+        const customAxisLines = vis.axisLines;
+        const timeInterval = customAxisLines[9].time.value;
+        const realTime = time * animationDuration - 1000;
+
+        for (let i = 1; i < 10; i++) {
+            setTimeout(() => {
+                customAxisLines[i].yTime -= 40;
+                customAxisLines[i].time.value += i * timeInterval;
+                customAxisLines[i].startTime.value += i * timeInterval;
+                vis.renderVis(realTime / 18);
+                customAxisLines[i].yTime += 40;
+                setTimeout(() => {
+                    vis.renderVis(realTime / 18);
+                }, realTime / 18);
+            }, i * realTime / 9);
+        }
+    }
+
+    dotsAppearForward(vis, time) {
         let newDots = vis.processedData.events
             .filter(d => d.set === vis.step && !d.copy);
 
         vis.data.events.push(...newDots);
 
-        vis.setupChart(0);
+        vis.axisLines = [];
+
+        vis.setupChart(animationDuration * time);
         vis.currentlyExecuting = false;
     }
 
-    back() {
+    /*back() {
         const vis = this;
 
         if (vis.currentlyExecuting) {
@@ -675,5 +728,5 @@ class AlignedMultiTieredTimeline {
 
         vis.setupChart(animationDuration);
         vis.currentlyExecuting = false;
-    }
+    }*/
 }
