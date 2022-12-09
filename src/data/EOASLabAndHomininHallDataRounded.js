@@ -1,4 +1,16 @@
-const eoasLabData = [
+const eoasAndHomininHallLabDataRoundedAnchors = [
+    100,
+    1000,
+    10000,
+    100000,
+    1000000,
+    10000000,
+    100000000,
+    1000000000,
+    10000000000
+]
+
+const eoasAndHomininHallLabDataRounded = [
     {
         "label": "Mara Born",
         "time": {
@@ -28,6 +40,13 @@ const eoasLabData = [
         }
     },
     {
+        "label": "100 years",
+        "time": {
+            "unit": "years",
+            "value": 100
+        }
+    },
+    {
         "label": "UBC Founded",
         "time": {
             "unit": "years",
@@ -49,6 +68,13 @@ const eoasLabData = [
         }
     },
     {
+        "label": "1,000 years",
+        "time": {
+            "unit": "years",
+            "value": 1000
+        }
+    },
+    {
         "label": "Ancient Egyptians",
         "time": {
             "unit": "years",
@@ -63,6 +89,13 @@ const eoasLabData = [
         }
     },
     {
+        "label": "10,000 years",
+        "time": {
+            "unit": "years",
+            "value": 10000
+        }
+    },
+    {
         "label": "Last Ice Age",
         "time": {
             "unit": "years",
@@ -70,17 +103,94 @@ const eoasLabData = [
         }
     },
     {
-        "label": "Earliest Homo Sapiens",
+        "label": "100,000 years",
+        "time": {
+            "unit": "years",
+            "value": 100000
+        }
+    },
+    {
+        "label": "Homo sapiens",
         "time": {
             "unit": "years",
             "value": 300000
         }
     },
     {
-        "label": "Earliest Hominins",
+        "label": "Homo neanderthalenthsis",
+        "time": {
+            "unit": "years",
+            "value": 400000
+        }
+    },
+    {
+        "label": "Homo heidelbergensis",
+        "time": {
+            "unit": "years",
+            "value": 800000
+        }
+    },
+    {
+        "label": "1,000,000 years",
+        "time": {
+            "unit": "years",
+            "value": 1000000
+        }
+    },
+    {
+        "label": "Homo erectus",
+        "time": {
+            "unit": "years",
+            "value": 2000000
+        }
+    },
+    {
+        "label": "Homo habilis",
+        "time": {
+            "unit": "years",
+            "value": 2100000
+        }
+    },
+    {
+        "label": "Paranthropus boisei",
+        "time": {
+            "unit": "years",
+            "value": 2500000
+        }
+    },
+    {
+        "label": "Australopithecus afarensis",
+        "time": {
+            "unit": "years",
+            "value": 3600000
+        }
+    },
+    {
+        "label": "Australopithecus africanus",
+        "time": {
+            "unit": "years",
+            "value": 3600000
+        }
+    },
+    {
+        "label": "Kenyanthropus platyops",
+        "time": {
+            "unit": "years",
+            "value": 4000000
+        }
+    },
+    {
+        "label": "Sahelanthropus tchadensis",
         "time": {
             "unit": "years",
             "value": 7000000
+        }
+    },
+    {
+        "label": "10,000,000 years",
+        "time": {
+            "unit": "years",
+            "value": 10000000
         }
     },
     {
@@ -116,6 +226,13 @@ const eoasLabData = [
         "time": {
             "unit": "years",
             "value": 80000000
+        }
+    },
+    {
+        "label": "100,000,000 years",
+        "time": {
+            "unit": "years",
+            "value": 100000000
         }
     },
     {
@@ -189,6 +306,13 @@ const eoasLabData = [
         }
     },
     {
+        "label": "1,000,000,000 years",
+        "time": {
+            "unit": "years",
+            "value": 1000000000
+        }
+    },
+    {
         "label": "Eukaryotes Appear",
         "time": {
             "unit": "years",
@@ -249,6 +373,13 @@ const eoasLabData = [
         "time": {
             "unit": "years",
             "value": 4500000000
+        }
+    },
+    {
+        "label": "10,000,000,000 years",
+        "time": {
+            "unit": "years",
+            "value": 10000000000
         }
     }
 ];

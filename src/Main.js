@@ -3,7 +3,7 @@ const config = {
     containerWidth: 800,
     containerHeight: 900,
     margin: {
-        top: 100,
+        top: 150,
         right: 60,
         bottom: 60,
         left: 60
@@ -12,37 +12,12 @@ const config = {
 
 const numSteps = 10;
 
-const processData = (data) => {
+const processData = (data, ideals) => {
     const logTimes = data.map(d => Math.log10(d.time.value));
     const minLogTime = Math.min(...logTimes);
     const maxLogTime = Math.max(...logTimes);
 
     const logDiff = (maxLogTime - minLogTime) / (numSteps - 1);
-
-    let ideals = [];
-    for (let i = 0; i < numSteps; i++) {
-        ideals.push(Math.pow(10, minLogTime + logDiff * i));
-    }
-
-    ideals = [
-        100,
-        //316,
-        1000,
-        //3160,
-        10000,
-        //31600,
-        100000,
-        //316000,
-        1000000,
-        //3160000,
-        10000000,
-        //31600000,
-        100000000,
-        //316000000,
-        1000000000,
-        //3160000000,
-        10000000000
-    ];
 
     let reals = [];
     ideals.forEach(y => {
@@ -66,8 +41,9 @@ const processData = (data) => {
         let events = [];
         data.forEach(d => {
             const lateEnough = lastEvent ? d.time.value > lastEvent.time.value : true;
-            const earlyEnough = d.time.value < e.time.value;
-            if (lateEnough && earlyEnough) {
+            const earlyEnough = d.time.value <= e.time.value;
+            const notDuplicate = e.label !== d.label;
+            if (lateEnough && earlyEnough && notDuplicate) {
                 events.push(d);
             }
         });
@@ -78,7 +54,7 @@ const processData = (data) => {
     return reals;
 }
 
-const data = processData(eoasLabDataRounded);
+const data = processData(eoasAndHomininHallLabDataRounded, eoasAndHomininHallLabDataRoundedAnchors);
 
 let chart;
 

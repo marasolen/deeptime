@@ -1,3 +1,15 @@
+const eoasLabDataRoundedAnchors = [
+    100,
+    1000,
+    10000,
+    100000,
+    1000000,
+    10000000,
+    100000000,
+    1000000000,
+    10000000000
+]
+
 const eoasLabDataRounded = [
     {
         "label": "Mara Born",
@@ -229,14 +241,14 @@ const eoasLabDataRounded = [
             "unit": "years",
             "value": 650000000
         }
-    },/*
+    },
     {
         "label": "First Sexual Reproduction",
         "time": {
             "unit": "years",
             "value": 900000000
         }
-    }*/,
+    },
     {
         "label": "1,000,000,000 years",
         "time": {
