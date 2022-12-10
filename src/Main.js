@@ -10,24 +10,27 @@ const config = {
     }
 };
 
-const numSteps = 10;
+const datasets = {
+    "eoasAndHomininHallLabDataRounded": [eoasAndHomininHallLabDataRounded, eoasAndHomininHallLabDataRoundedAnchors],
+    "eoasLabDataRounded": [eoasLabDataRounded, eoasLabDataRoundedAnchors],
+    "esbDataRounded": [esbDataRounded, esbDataRoundedAnchors],
+    "geoTimelineDataRounded": [geoTimelineDataRounded, geoTimelineDataRoundedAnchors],
+    "homininHallDataRounded": [homininHallDataRounded, homininHallDataRoundedAnchors],
+    "walkThroughTimeDataRounded": [walkThroughTimeDataRounded, walkThroughTimeDataRoundedAnchors]
+}
+
+let data;
 
 const processData = (data, ideals) => {
-    const logTimes = data.map(d => Math.log10(d.time.value));
-    const minLogTime = Math.min(...logTimes);
-    const maxLogTime = Math.max(...logTimes);
-
-    const logDiff = (maxLogTime - minLogTime) / (numSteps - 1);
-
     let reals = [];
     ideals.forEach(y => {
-        let bestMultDiff = 100;
+        let bestMultiplicativeDiff = 100;
         let bestEvent;
         data.forEach(d => {
-            let multDiff = d.time.value / y;
-            multDiff = multDiff >= 1 ? multDiff : 1 / multDiff;
-            if (multDiff < bestMultDiff) {
-                bestMultDiff = multDiff;
+            let multiplicativeDiff = d.time.value / y;
+            multiplicativeDiff = multiplicativeDiff >= 1 ? multiplicativeDiff : 1 / multiplicativeDiff;
+            if (multiplicativeDiff < bestMultiplicativeDiff) {
+                bestMultiplicativeDiff = multiplicativeDiff;
                 bestEvent = d;
             }
         });
@@ -54,23 +57,29 @@ const processData = (data, ideals) => {
     return reals;
 }
 
-const data = processData(eoasAndHomininHallLabDataRounded, eoasAndHomininHallLabDataRoundedAnchors);
-
 let chart;
 
 const setButtonFunctions = () => {
     d3.select("#reset").on("click", () => {
         chart.reset();
-    })
+    });
 
     d3.select("#back").on("click", () => {
         //chart.back();
-    })
+    });
 
     d3.select("#next").on("click", () => {
         chart.next();
-    })
+    });
 };
+
+const changeDataset = () => {
+    const selection = document.getElementById('datasets-dropdown');
+    const datasetName = selection.options[selection.selectedIndex].value;
+    data = processData(datasets[datasetName][0], datasets[datasetName][1]);
+    chart.origData = data;
+    chart.updateData();
+}
 
 const setContainerSize = () => {
     config.containerHeight = window.innerHeight * 0.96;
@@ -90,6 +99,8 @@ window.addEventListener('load', () => {
     setButtonFunctions();
 
     setContainerSize();
+
+    data = processData(eoasAndHomininHallLabDataRounded, eoasAndHomininHallLabDataRoundedAnchors);
     chart = new AlignedMultiTieredTimeline(config, data);
 });
 

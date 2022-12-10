@@ -12,6 +12,14 @@
             <button id="reset">Reset</button>
             <button id="back" style="display: none">Back</button>
             <button id="next">Next</button>
+            <select name="datasets" id="datasets-dropdown" onchange="changeDataset()">
+                <option value="eoasAndHomininHallLabDataRounded">EOAS Lab + Hominin Hall</option>
+                <option value="eoasLabDataRounded">EOAS Lab</option>
+                <option value="esbDataRounded">ESB</option>
+                <option value="geoTimelineDataRounded">Standard Geological Timeline</option>
+                <option value="homininHallDataRounded">Hominin Hall</option>
+                <option value="walkThroughTimeDataRounded">Walk Through Time</option>
+            </select>
         </div>
 
         <!-- Chart -->

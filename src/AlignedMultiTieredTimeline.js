@@ -93,20 +93,20 @@ class AlignedMultiTieredTimeline {
                     yTime: vis.getTimeInYears(d.time), copy: true, set: set, otherYTime: vis.getTimeInYears(lastEvent.time),
                     realYTime: vis.getTimeInYears(d.time), otherParent: lastEvent.uuid, realParent: d.uuid });
 
-                vis.processedData.events.push(...lastEvent.events.map(e => {
+                vis.processedData.events.push(...lastEvent.events.map((e, i) => {
                     return {label: e.label, time: e.time, parent: d.uuid, yTime: vis.getTimeInYears(d.time), copy: true,
                         set: set, otherYTime: vis.getTimeInYears(lastEvent.time), realYTime: vis.getTimeInYears(d.time),
-                        otherParent: lastEvent.uuid, realParent: d.uuid}
+                        otherParent: lastEvent.uuid, realParent: d.uuid }
                 }));
             }
 
             vis.processedData.events.push(...d.events.map((e, i) => {
                 return {label: e.label, time: e.time, parent: d.uuid, yTime: vis.getTimeInYears(d.time), copy: false,
-                    set: set, labelLevel: vis.processedData.events.length + i};
+                    set: set, labelLevel: i};
             }));
 
             vis.processedData.events.push({label: d.label, time: d.time, parent: d.uuid, yTime: vis.getTimeInYears(d.time),
-                copy: false, set: set, labelLevel: vis.processedData.events.length + i})
+                copy: false, set: set, labelLevel: d.events.length})
 
             lastEvent = d;
         });
@@ -174,8 +174,6 @@ class AlignedMultiTieredTimeline {
 
         vis.xOffsetScale
             .range([vis.timelineOffset, 0]);
-
-        console.log(vis.data)
 
         // Initialize axes
         let lastTime = null;
@@ -452,7 +450,7 @@ class AlignedMultiTieredTimeline {
             .duration(animationDuration)
             .attr("class", "event-text")
             .attr("x", getEventX)
-            .attr("y", (e, i) => vis.yScale(e.yTime) - ((i % 7) + 1) * 15)
+            .attr("y", e => vis.yScale(e.yTime) - ((e.labelLevel % 7) + 1) * 15)
             .attr("opacity", d => d.hidden ? 0 : 1)
             .style('text-anchor', 'middle')
             .style("font-size", "15px")
@@ -467,7 +465,7 @@ class AlignedMultiTieredTimeline {
             .attr("x1", getEventX)
             .attr("y1", e => vis.yScale(e.yTime))
             .attr("x2", getEventX)
-            .attr("y2", (e, i) => vis.yScale(e.yTime) - ((i % 7) + 1) * 15)
+            .attr("y2", e => vis.yScale(e.yTime) - ((e.labelLevel % 7) + 1) * 15)
             .style("stroke", "red")
             .style("stroke-width", 2)
             .attr("stroke-opacity", d => d.hidden ? 0 : 0.2);
