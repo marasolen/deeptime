@@ -1,17 +1,10 @@
-const homininHallDataRoundedAnchors = [
+const homininHallDataAnchors = [
     100000,
     1000000,
     10000000
 ]
 
-const homininHallDataRounded = [
-    {
-        "label": "100,000 years",
-        "time": {
-            "unit": "years",
-            "value": 100000
-        }
-    },
+const homininHallData = [
     {
         "label": "Homo sapiens",
         "time": {
@@ -31,13 +24,6 @@ const homininHallDataRounded = [
         "time": {
             "unit": "years",
             "value": 800000
-        }
-    },
-    {
-        "label": "1,000,000 years",
-        "time": {
-            "unit": "years",
-            "value": 1000000
         }
     },
     {
@@ -88,12 +74,5 @@ const homininHallDataRounded = [
             "unit": "years",
             "value": 7000000
         }
-    },
-    {
-        "label": "10,000,000 years",
-        "time": {
-            "unit": "years",
-            "value": 10000000
-        }
-    },
+    }
 ];

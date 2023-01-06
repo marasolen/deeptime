@@ -1,10 +1,10 @@
-const walkThroughTimeDataRoundedAnchors = [
+const walkThroughTimeDataAnchors = [
     100000000,
     1000000000,
     10000000000
 ]
 
-const walkThroughTimeDataRounded = [
+const walkThroughTimeData = [
     {
         "label": "Hello, age of mammals!",
         "time": {
@@ -21,13 +21,6 @@ const walkThroughTimeDataRounded = [
     },
     {
         "label": "Dinosaurs ruled",
-        "time": {
-            "unit": "years",
-            "value": 100000000
-        }
-    },
-    {
-        "label": "100,000,000 years",
         "time": {
             "unit": "years",
             "value": 100000000
@@ -94,13 +87,6 @@ const walkThroughTimeDataRounded = [
         "time": {
             "unit": "years",
             "value": 900000000
-        }
-    },
-    {
-        "label": "1,000,000,000 years",
-        "time": {
-            "unit": "years",
-            "value": 1000000000
         }
     },
     {
@@ -199,13 +185,6 @@ const walkThroughTimeDataRounded = [
         "time": {
             "unit": "years",
             "value": 4560000000
-        }
-    },
-    {
-        "label": "10,000,000,000 years",
-        "time": {
-            "unit": "years",
-            "value": 10000000000
         }
     }
 ];

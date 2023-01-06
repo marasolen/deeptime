@@ -1,27 +1,31 @@
 const config = {
-    parentElement: "#vis",
+    parentElement: "#multi-tired-timeline",
     containerWidth: 800,
     containerHeight: 900,
     margin: {
-        top: 150,
+        top: 100,
         right: 60,
-        bottom: 60,
-        left: 60
+        bottom: 10,
+        left: 100
     }
 };
 
 const datasets = {
-    "eoasAndHomininHallLabDataRounded": [eoasAndHomininHallLabDataRounded, eoasAndHomininHallLabDataRoundedAnchors],
-    "eoasLabDataRounded": [eoasLabDataRounded, eoasLabDataRoundedAnchors],
-    "esbDataRounded": [esbDataRounded, esbDataRoundedAnchors],
-    "geoTimelineDataRounded": [geoTimelineDataRounded, geoTimelineDataRoundedAnchors],
-    "homininHallDataRounded": [homininHallDataRounded, homininHallDataRoundedAnchors],
-    "walkThroughTimeDataRounded": [walkThroughTimeDataRounded, walkThroughTimeDataRoundedAnchors]
+    "EOASLabAndHomininHallData": [eoasLabAndHomininHallData, eoasLabAndHomininHallDataAnchors],
+    "EOASLabData": [EOASLabData, eoasLabDataAnchors],
+    "ESBData": [ESBData, esbDataAnchors],
+    "GeoTimelineData": [geoTimelineData, geoTimelineDataAnchors],
+    "HomininHallData": [homininHallData, homininHallDataAnchors],
+    "WalkThroughTimeData": [walkThroughTimeData, walkThroughTimeDataAnchors]
 }
 
 let data;
 
 const processData = (data, ideals) => {
+    data = data.sort((a, b) => {
+        return a.time.value - b.time.value;
+    });
+
     let reals = [];
     ideals.forEach(y => {
         let bestMultiplicativeDiff = 100;
@@ -82,17 +86,11 @@ const changeDataset = () => {
 }
 
 const setContainerSize = () => {
-    config.containerHeight = window.innerHeight * 0.96;
-    config.containerWidth = window.innerWidth * 0.96;
+    config.containerHeight = document.getElementById("multi-tired-timeline").getBoundingClientRect().height;
+    config.containerWidth = document.getElementById("multi-tired-timeline").getBoundingClientRect().width;
 
     config.margin.right = 60;
-    config.margin.left = 100;
-
-    /*if (config.containerWidth > config.containerHeight) {
-        const lrMargin = (config.containerWidth - config.containerHeight) / 2;
-        config.margin.right = lrMargin;
-        config.margin.left = lrMargin;
-    }*/
+    config.margin.left = 110;
 };
 
 window.addEventListener('load', () => {
@@ -100,11 +98,11 @@ window.addEventListener('load', () => {
 
     setContainerSize();
 
-    data = processData(eoasAndHomininHallLabDataRounded, eoasAndHomininHallLabDataRoundedAnchors);
+    data = processData(eoasLabAndHomininHallData, eoasLabAndHomininHallDataAnchors);
     chart = new AlignedMultiTieredTimeline(config, data);
 });
 
-window.addEventListener('resize', (event) => {
+window.addEventListener('resize', () => {
     setContainerSize();
     chart.config = config;
     chart.setupChart(0);

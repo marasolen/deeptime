@@ -1,23 +1,16 @@
-const geoTimelineDataRoundedAnchors = [
+const geoTimelineDataAnchors = [
     10000000,
     100000000,
     1000000000,
     10000000000
 ]
 
-const geoTimelineDataRounded = [
+const geoTimelineData = [
     {
         "label": "Quaternary period begins",
         "time": {
             "unit": "years",
             "value": 2600000
-        }
-    },
-    {
-        "label": "10,000,000 years",
-        "time": {
-            "unit": "years",
-            "value": 10000000
         }
     },
     {
@@ -32,13 +25,6 @@ const geoTimelineDataRounded = [
         "time": {
             "unit": "years",
             "value": 66000000
-        }
-    },
-    {
-        "label": "100,000,000 years",
-        "time": {
-            "unit": "years",
-            "value": 100000000
         }
     },
     {
@@ -119,13 +105,6 @@ const geoTimelineDataRounded = [
         }
     },
     {
-        "label": "1,000,000,000 years",
-        "time": {
-            "unit": "years",
-            "value": 1000000000
-        }
-    },
-    {
         "label": "Neoproterozoic era begins",
         "time": {
             "unit": "years",
@@ -193,13 +172,6 @@ const geoTimelineDataRounded = [
         "time": {
             "unit": "years",
             "value": 4500000000
-        }
-    },
-    {
-        "label": "10,000,000,000 years",
-        "time": {
-            "unit": "years",
-            "value": 10000000000
         }
     }
 ];

@@ -1,22 +1,15 @@
-const esbDataRoundedAnchors = [
+const esbDataAnchors = [
     100000000,
     1000000000,
     10000000000
 ]
 
-const esbDataRounded = [
+const ESBData = [
     {
         "label": "The Present Day Earth",
         "time": {
             "unit": "years",
             "value": 0
-        }
-    },
-    {
-        "label": "100,000,000 years",
-        "time": {
-            "unit": "years",
-            "value": 100000000
         }
     },
     {
@@ -41,13 +34,6 @@ const esbDataRounded = [
         }
     },
     {
-        "label": "1,000,000,000 years",
-        "time": {
-            "unit": "years",
-            "value": 1000000000
-        }
-    },
-    {
         "label": "The Microbial Earth",
         "time": {
             "unit": "years",
@@ -66,13 +52,6 @@ const esbDataRounded = [
         "time": {
             "unit": "years",
             "value": 4500000000
-        }
-    },
-    {
-        "label": "10,000,000,000 years",
-        "time": {
-            "unit": "years",
-            "value": 10000000000
         }
     }
 ];

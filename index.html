@@ -13,29 +13,34 @@
             <button id="back" style="display: none">Back</button>
             <button id="next">Next</button>
             <select name="datasets" id="datasets-dropdown" onchange="changeDataset()">
-                <option value="eoasAndHomininHallLabDataRounded">EOAS Lab + Hominin Hall</option>
-                <option value="eoasLabDataRounded">EOAS Lab</option>
-                <option value="esbDataRounded">ESB</option>
-                <option value="geoTimelineDataRounded">Standard Geological Timeline</option>
-                <option value="homininHallDataRounded">Hominin Hall</option>
-                <option value="walkThroughTimeDataRounded">Walk Through Time</option>
+                <option value="EOASLabAndHomininHallData">EOAS Lab + Hominin Hall</option>
+                <option value="EOASLabData">EOAS Lab</option>
+                <option value="ESBData">ESB</option>
+                <option value="GeoTimelineData">Standard Geological Timeline</option>
+                <option value="HomininHallData">Hominin Hall</option>
+                <option value="WalkThroughTimeData">Walk Through Time</option>
             </select>
         </div>
 
-        <!-- Chart -->
-        <div id="vis"></div>
+        <!-- Dashboard -->
+        <div id="full-earth-timeline"></div>
+        <div id="multi-tired-timeline"></div>
+        <div id="media-focus"></div>
+        <div id="expanding-timeline"></div>
 
         <!-- Libraries -->
         <script src="src/libraries/d3.v7.min.js"></script>
 
         <!-- Source Code -->
-        <script>let exports = {};</script>
-        <script src="src/data/EOASLabAndHomininHallDataRounded.js" type="text/javascript"></script>
-        <script src="src/data/EOASLabDataRounded.js" type="text/javascript"></script>
-        <script src="src/data/ESBDataRounded.js" type="text/javascript"></script>
-        <script src="src/data/GeoTimelineDataRounded.js" type="text/javascript"></script>
-        <script src="src/data/HomininHallDataRounded.js" type="text/javascript"></script>
-        <script src="src/data/WalkThroughTimeDataRounded.js" type="text/javascript"></script>
+        <script src="src/data/EOASLabAndHomininHallData.js" type="text/javascript"></script>
+        <script src="src/data/EOASLabData.js" type="text/javascript"></script>
+        <script src="src/data/ESBData.js" type="text/javascript"></script>
+        <script src="src/data/GeoTimelineData.js" type="text/javascript"></script>
+        <script src="src/data/HomininHallData.js" type="text/javascript"></script>
+        <script src="src/data/WalkThroughTimeData.js" type="text/javascript"></script>
+
+        <script src="src/FullEarthTimeline.js" type="text/javascript"></script>
+        <script src="src/ExpandingTimeline.js" type="text/javascript"></script>
         <script src="src/AlignedMultiTieredTimeline.js" type="text/javascript"></script>
         <script src="src/Main.js" type="text/javascript"></script>
     </body>

@@ -1,3 +1,51 @@
 #control {
+    position: absolute;
+
+    width: 50%;
+    height: 2%;
+
+    top: 1%;
+    left: 0%;
+
     text-align: center;
+}
+
+#multi-tired-timeline {
+    position: absolute;
+
+    width: 50%;
+    height: 95%;
+
+    top: 3%;
+    left: 0%;
+}
+
+#full-earth-timeline {
+    position: absolute;
+
+    width: 50%;
+    height: 10%;
+
+    top: 0%;
+    left: 50%;
+}
+
+#expanding-timeline {
+    position: absolute;
+
+    width: 50%;
+    height: 30%;
+
+    top: 10%;
+    left: 50%;
+}
+
+#media-focus {
+    position: absolute;
+
+    width: 50%;
+    height: 60%;
+
+    top: 40%;
+    left: 50%;
 }
