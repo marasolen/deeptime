@@ -1,4 +1,5 @@
 const numLabelLevels = 4;
+const numAreaExtensions = 5;
 
 class TieredTimeline {
 
@@ -22,13 +23,19 @@ class TieredTimeline {
 
         vis.yScale = d3.scaleLog();
 
-        // Define size of SVG drawing area
+        vis.areaGen = a => {
+            let path = "M";
+            a.forEach(p => {
+                path += p.x + "," + p.y + p.t
+            });
+            path = path.slice(0, -1) + "Z";
+            return path;
+        };
+
         vis.svg = d3.select(vis.config.parentElement)
             .append('svg')
             .attr('class', 'drawing-area');
 
-        // Append group element that will contain our actual chart
-        // and position it according to the given margin config
         vis.chartAreas = vis.svg.append('g')
             .attr('class', 'chart');
         vis.chartStandardLines = vis.svg.append('g')
@@ -80,67 +87,6 @@ class TieredTimeline {
         vis.setupChart(0)
     }
 
-    processDataItem(d, i, lastEvent) {
-        const vis = this;
-
-        d.xScale = d3.scaleLinear()
-            .domain([d.time, 0]);
-
-        if (lastEvent) {
-            lastEvent.events.filter(e => !e.copy).forEach((e, j) => {
-                vis.eventConnectors.push({ early: { group: i - 1, element: j }, late: { group: i, element: d.events.length } });
-                d.events.push({ label: e.label, time: e.time, copy: true });
-            });
-
-            d.segments = JSON.parse(JSON.stringify(lastEvent.segments));
-            d.segments.push({ start: d.segments[d.segments.length - 1].end, end: d.time });
-        } else {
-            d.segments = [{ start: 0, end: d.time }]
-        }
-
-        d.events.forEach((e, j) => {
-            e.labelLevel = j % numLabelLevels;
-        });
-
-    }
-
-    /**
-     * Set up the visual side of the visualization.
-     * @param animationDuration - number, the length of the animation in ms
-     */
-    setupChart(animationDuration) {
-        const vis = this;
-
-        // Calculate inner chart size. Margin specifies the space around the actual chart.
-        vis.width = vis.config.containerWidth - vis.config.margin.left - vis.config.margin.right;
-        vis.height = vis.config.containerHeight - vis.config.margin.top - vis.config.margin.bottom;
-
-        vis.yScale
-            .range([vis.height, 0]);
-
-        vis.data.forEach((d, i) => {
-            d.xScale.range([i < vis.data.length - 1 ? vis.width / 2 : 0, vis.width]);
-        });
-
-        // Define size of SVG drawing area
-        vis.svg
-            .attr('width', vis.config.containerWidth)
-            .attr('height', vis.config.containerHeight);
-
-        // Append group element that will contain our actual chart
-        // and position it according to the given margin config
-        vis.chartAreas
-            .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
-        vis.chartStandardLines
-            .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
-        vis.chartExpandingLine
-            .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
-        vis.chartAnnotations
-            .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
-
-        vis.renderVis(animationDuration);
-    }
-
     /**
      * Animate the addition of a new timeline.
      * @param data - object, the new timeline to add
@@ -175,6 +121,115 @@ class TieredTimeline {
     }
 
     /**
+     * Update a single timeline to contain all necessary information.
+     * @param d - object, the data to update
+     * @param i - number, the index of the data
+     * @param lastEvent - object, the previous timeline
+     */
+    processDataItem(d, i, lastEvent) {
+        const vis = this;
+
+        d.xScale = d3.scaleLinear()
+            .domain([d.time, 0]);
+
+        if (lastEvent) {
+            lastEvent.events.filter(e => !e.copy).forEach((e, j) => {
+                vis.eventConnectors.push({ early: { group: i - 1, element: j }, late: { group: i, element: d.events.length } });
+                d.events.push({ label: e.label, time: e.time, copy: true });
+            });
+
+            d.segments = JSON.parse(JSON.stringify(lastEvent.segments));
+            d.segments.push({ start: d.segments[d.segments.length - 1].end, end: d.time });
+        } else {
+            d.segments = [{ start: 0, end: d.time }]
+        }
+
+        d.events.forEach((e, j) => {
+            e.labelLevel = j % numLabelLevels;
+        });
+    }
+
+    /**
+     * Set up the visual side of the visualization.
+     * @param animationDuration - number, the length of the animation in ms
+     */
+    setupChart(animationDuration) {
+        const vis = this;
+
+        vis.width = vis.config.containerWidth - vis.config.margin.left - vis.config.margin.right;
+        vis.height = vis.config.containerHeight - vis.config.margin.top - vis.config.margin.bottom;
+
+        vis.yScale
+            .range([vis.height, 0]);
+
+        vis.data.forEach((d, i) => {
+            d.xScale.range([i < vis.data.length - 1 ? vis.width / 2 : 0, vis.width]);
+        });
+
+        const areaAnchorSets = [];
+
+        vis.data.forEach((d, i) => {
+            const areaAnchorSet = [];
+            vis.data.slice(i, i + numAreaExtensions).forEach((f, j) => {
+                areaAnchorSet.push({ time: d.time, x: f.time, y: vis.yScale(f.time),
+                    w: j + i === vis.data.length - 1 ? vis.width : vis.width / 2 });
+            });
+
+            areaAnchorSets.push(areaAnchorSet);
+        });
+
+        vis.areas = [];
+        console.log(areaAnchorSets)
+        const generateArea = (anchorSet, lastPositionI, currPositionI, numIterations) => {
+            const area = [];
+
+            const lastPosition = anchorSet[lastPositionI];
+            const currPosition = anchorSet[currPositionI];
+
+            if (numIterations !== 0) {
+                const yDiff = currPosition.y - lastPosition.y;
+
+                for (let i = 0; i <= 10; i++) {
+                    const yPosition = lastPosition.y + i * yDiff / 10;
+                    const width = lastPosition.w + (currPosition.w - lastPosition.w) *
+                        (vis.yScale.invert(yPosition) / currPosition.x - (10 - i) / 10 * lastPosition.x / currPosition.x) ;
+                    console.log(width);
+                    area.push({ x: (-lastPosition.time / vis.yScale.invert(yPosition)) * width + vis.width, y: yPosition, t: "L" })
+                }
+
+                area.push(...generateArea(anchorSet,
+                    Math.min(anchorSet.length - 1, currPositionI),
+                    Math.min(anchorSet.length - 1, currPositionI + 1),
+                    numIterations - 1));
+
+                area.push({ x: vis.width, y: currPosition.y, t: "L"})
+                area.push({ x: vis.width, y: lastPosition.y, t: "L"})
+            }
+
+            return area;
+        }
+
+        areaAnchorSets.forEach(as => {
+            vis.areas.push(generateArea(as, 0, Math.min(as.length - 1, 1), 5));
+        });
+
+        vis.svg
+            .attr('width', vis.config.containerWidth)
+            .attr('height', vis.config.containerHeight);
+
+        vis.chartAreas
+            .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
+        vis.chartStandardLines
+            .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
+        vis.chartExpandingLine
+            .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
+        vis.chartAnnotations
+            .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
+
+        vis.renderVis(animationDuration);
+    }
+
+    /**
      * Bind data to visual elements.
      * @param animationDuration - number, the length of the animation in ms
      */
@@ -182,6 +237,19 @@ class TieredTimeline {
         const vis = this;
 
         let timePeriodColours = d3.scaleOrdinal(d3.schemeCategory10);
+
+        vis.chartAreas.selectAll(".area")
+            .data(vis.areas)
+            .join("path")
+            .transition()
+            .duration(animationDuration)
+            .attr("class", "area")
+            .attr("d", a => vis.areaGen(a))
+            .attr("fill", (_, i) => timePeriodColours(i))
+            .attr("stroke", "none")
+            .attr("stroke-width", 3)
+            .attr("stroke-opacity", 0.4)
+            .attr("fill-opacity", 0.3);
 
         vis.chartAnnotations.selectAll(".event-connector")
             .data(vis.eventConnectors)
@@ -221,7 +289,7 @@ class TieredTimeline {
                 .attr("x1", e => d.xScale(e.time))
                 .attr("y1", _ => vis.yScale(d.time))
                 .attr("x2", e => d.xScale(e.time))
-                .attr("y2", e => vis.yScale(d.time) - (e.labelLevel + 1) * 15)
+                .attr("y2", e => vis.yScale(d.time) - (e.labelLevel + 1) * 10)
                 .style("stroke", "red")
                 .style("stroke-width", 3)
                 .attr("stroke-opacity", _ => j === vis.data.length - 1 ? 0 : 0.2);
@@ -247,10 +315,10 @@ class TieredTimeline {
                 .duration(animationDuration)
                 .attr("class", "event-text-" + d.time)
                 .attr("x", e => d.xScale(e.time))
-                .attr("y", e => vis.yScale(d.time) - (e.labelLevel + 1) * 15)
+                .attr("y", e => vis.yScale(d.time) - (e.labelLevel + 1) * 10)
                 .attr("opacity", _ => j === vis.data.length - 1 ? 0 : 1)
                 .style('text-anchor', 'middle')
-                .style("font-size", "0.9em")
+                .style("font-size", "0.7em")
                 .text(e => e.label);
         });
 
@@ -299,11 +367,11 @@ class TieredTimeline {
         vis.chartAnnotations.selectAll(".event-text-main")
             .data(vis.main.events)
             .join("text")
+            .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 2) * 15)
             .style("font-size", "0.9em")
             .transition()
             .duration(animationDuration)
             .attr("x", e => vis.main.xScale(e.time))
-            .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 2) * 15)
             .attr("class", "event-text-main")
             .attr("opacity", e => (e.hidden || e.copy) ? 0 : 1)
             .style('text-anchor', 'middle')
