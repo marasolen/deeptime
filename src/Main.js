@@ -1,12 +1,24 @@
-const config = {
-    parentElement: "#multi-tired-timeline",
-    containerWidth: 800,
-    containerHeight: 900,
+const timelineConfig = {
+    parentElement: "#simple-timeline",
+    containerWidth: 1,
+    containerHeight: 1,
+    margin: {
+        top: 10,
+        right: 110,
+        bottom: 20,
+        left: 110
+    }
+}
+
+const tieredTimelineConfig = {
+    parentElement: "#tiered-timeline",
+    containerWidth: 1,
+    containerHeight: 1,
     margin: {
         top: 100,
-        right: 60,
-        bottom: 10,
-        left: 100
+        right: 110,
+        bottom: 20,
+        left: 110
     }
 };
 
@@ -19,11 +31,20 @@ const datasets = {
     "WalkThroughTimeData": [walkThroughTimeData, walkThroughTimeDataAnchors]
 }
 
+const animationDuration = 2000;
+
 let data;
+let currentIndex = 1;
+
+let pressNext = false;
 
 const processData = (data, ideals) => {
     data = data.sort((a, b) => {
         return a.time.value - b.time.value;
+    });
+
+    data.forEach(d => {
+        d.time = getTimeInYears(d.time);
     });
 
     let reals = [];
@@ -31,7 +52,7 @@ const processData = (data, ideals) => {
         let bestMultiplicativeDiff = 100;
         let bestEvent;
         data.forEach(d => {
-            let multiplicativeDiff = d.time.value / y;
+            let multiplicativeDiff = d.time / y;
             multiplicativeDiff = multiplicativeDiff >= 1 ? multiplicativeDiff : 1 / multiplicativeDiff;
             if (multiplicativeDiff < bestMultiplicativeDiff) {
                 bestMultiplicativeDiff = multiplicativeDiff;
@@ -47,11 +68,10 @@ const processData = (data, ideals) => {
     reals.forEach(e => {
         let events = [];
         data.forEach(d => {
-            const lateEnough = lastEvent ? d.time.value > lastEvent.time.value : true;
-            const earlyEnough = d.time.value <= e.time.value;
-            const notDuplicate = e.label !== d.label;
-            if (lateEnough && earlyEnough && notDuplicate) {
-                events.push(d);
+            const lateEnough = lastEvent ? d.time > lastEvent.time : true;
+            const earlyEnough = d.time <= e.time;
+            if (lateEnough && earlyEnough) {
+                events.push(JSON.parse(JSON.stringify(d)));
             }
         });
         e.events = events;
@@ -61,37 +81,63 @@ const processData = (data, ideals) => {
     return reals;
 }
 
-let chart;
+let tieredTimeline;
+let timeline;
 
 const setButtonFunctions = () => {
-    d3.select("#reset").on("click", () => {
-        chart.reset();
-    });
+    document.onkeydown = (event) => {
+        if (event.key !== "ArrowRight") {
+            return;
+        }
 
-    d3.select("#back").on("click", () => {
-        //chart.back();
-    });
+        pressNext = true;
+    };
 
-    d3.select("#next").on("click", () => {
-        chart.next();
-    });
+    document.onkeyup = (event) => {
+        if (event.key !== "ArrowRight") {
+            return;
+        }
+
+        if (pressNext) {
+            pressNext = false
+
+            if (currentIndex < data.length) {
+                tieredTimeline.nextTime(data[currentIndex]);
+                timeline.nextTime(data[currentIndex].time);
+                currentIndex += 1;
+            }
+        }
+    };
 };
 
 const changeDataset = () => {
     const selection = document.getElementById('datasets-dropdown');
     const datasetName = selection.options[selection.selectedIndex].value;
     data = processData(datasets[datasetName][0], datasets[datasetName][1]);
-    chart.origData = data;
-    chart.updateData();
+
+    currentIndex = 1;
+
+    tieredTimeline.updateData(data.slice(0, 1));
+
+    timeline.updateData(data[data.length - 1].time, data[0].time);
 }
 
 const setContainerSize = () => {
-    config.containerHeight = document.getElementById("multi-tired-timeline").getBoundingClientRect().height;
-    config.containerWidth = document.getElementById("multi-tired-timeline").getBoundingClientRect().width;
+    tieredTimelineConfig.containerHeight = document.getElementById("tiered-timeline").getBoundingClientRect().height;
+    tieredTimelineConfig.containerWidth = document.getElementById("tiered-timeline").getBoundingClientRect().width;
 
-    config.margin.right = 60;
-    config.margin.left = 110;
+    timelineConfig.containerHeight = document.getElementById("simple-timeline").getBoundingClientRect().height;
+    timelineConfig.containerWidth = document.getElementById("simple-timeline").getBoundingClientRect().width;
 };
+
+const getTimeInYears = ({unit: unit, value: value}) => {
+    switch (unit) {
+        case "year":
+            return 2023 - value;
+        default:
+            return value;
+    }
+}
 
 window.addEventListener('load', () => {
     setButtonFunctions();
@@ -99,11 +145,17 @@ window.addEventListener('load', () => {
     setContainerSize();
 
     data = processData(eoasLabAndHomininHallData, eoasLabAndHomininHallDataAnchors);
-    chart = new AlignedMultiTieredTimeline(config, data);
+
+    tieredTimeline = new TieredTimeline(tieredTimelineConfig, data.slice(0, currentIndex));
+    timeline = new Timeline(timelineConfig, data[data.length - 1].time, data[0].time);
 });
 
 window.addEventListener('resize', () => {
     setContainerSize();
-    chart.config = config;
-    chart.setupChart(0);
+
+    tieredTimeline.config = tieredTimelineConfig;
+    tieredTimeline.setupChart(0);
+
+    timeline.config = timelineConfig;
+    timeline.setupChart();
 });
