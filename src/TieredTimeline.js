@@ -192,8 +192,7 @@ class TieredTimeline {
                 for (let i = 0; i <= 10; i++) {
                     const yPosition = lastPosition.y + i * yDiff / 10;
                     const width = lastPosition.w + (currPosition.w - lastPosition.w) *
-                        (vis.yScale.invert(yPosition) / currPosition.x - (10 - i) / 10 * lastPosition.x / currPosition.x) ;
-                    console.log(width);
+                        (vis.yScale.invert(yPosition) / currPosition.x - (10 - i) / 10 * lastPosition.x / currPosition.x);
                     area.push({ x: (-lastPosition.time / vis.yScale.invert(yPosition)) * width + vis.width, y: yPosition, t: "L" })
                 }
 
@@ -376,5 +375,8 @@ class TieredTimeline {
             .attr("opacity", e => (e.hidden || e.copy) ? 0 : 1)
             .style('text-anchor', 'middle')
             .text(e => e.label);
+
+        document.getElementById("media-title").innerText = vis.main.label;
+        document.getElementById("media-description").innerText = "A description of " + vis.main.label + ".";
     }
 }
