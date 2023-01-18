@@ -434,6 +434,7 @@ class TieredTimeline {
             .text(e => vis.numberFormatter(e.time) + " years");
 
         document.getElementById("media-title").innerText = vis.main.label;
-        document.getElementById("media-description").innerText = "A description of " + vis.main.label + ".";
+        document.getElementById("media-description").innerText = vis.main.description ? vis.main.description : "A description of " + vis.main.label + ".";
+        document.getElementById("media-image").src = "src/data/images/" + (vis.main.image ? vis.main.image : "noimage.jpeg");
     }
 }

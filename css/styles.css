@@ -45,3 +45,7 @@
     border: 5px dashed black;
     border-radius: 30px;
 }
+
+#media-image {
+    max-height: 50%;
+}
