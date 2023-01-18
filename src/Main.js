@@ -3,10 +3,10 @@ const timelineConfig = {
     containerWidth: 1,
     containerHeight: 1,
     margin: {
-        top: 10,
-        right: 110,
-        bottom: 20,
-        left: 110
+        top:    0 / 100,
+        right:  3 / 100,
+        bottom: 0 / 100,
+        left:   3 / 100
     }
 }
 
@@ -15,12 +15,21 @@ const tieredTimelineConfig = {
     containerWidth: 1,
     containerHeight: 1,
     margin: {
-        top: 100,
-        right: 110,
-        bottom: 20,
-        left: 110
+        top:    16.3 / 100,
+        right:   4.3 / 100,
+        bottom:  1.8 / 100,
+        left:    4.3 / 100
     }
 };
+
+const mediaBoxConfig = {
+    parentElement: "#media-focus",
+    containerWidth: 1,
+    containerHeight: 1,
+    borderWidth:         0.5 / 100,
+    headerFontSize:      5.5 / 100,
+    descriptionFontSize: 2.8 / 100
+}
 
 const datasets = {
     "EOASLabAndHomininHallData": [eoasLabAndHomininHallData, eoasLabAndHomininHallDataAnchors],
@@ -103,13 +112,14 @@ const setButtonFunctions = () => {
 
             if (currentIndex < data.length) {
                 tieredTimeline.nextTime(data[currentIndex]);
-                timeline.nextTime(data[currentIndex].time);
+                timeline.nextTime({ label: data[currentIndex].label, time: data[currentIndex].time } );
                 currentIndex += 1;
             }
         }
     };
 };
 
+/*
 const changeDataset = () => {
     const selection = document.getElementById('datasets-dropdown');
     const datasetName = selection.options[selection.selectedIndex].value;
@@ -121,6 +131,17 @@ const changeDataset = () => {
 
     timeline.updateData(data[data.length - 1].time, data[0].time);
 }
+*/
+
+const resizeMediaBox = () => {
+    console.log(mediaBoxConfig);
+    $(mediaBoxConfig.parentElement).css("border-width", mediaBoxConfig.borderWidth * mediaBoxConfig.containerWidth + "px");
+    $(mediaBoxConfig.parentElement).css("border-radius", 6 * mediaBoxConfig.borderWidth * mediaBoxConfig.containerWidth + "px");
+    $(mediaBoxConfig.parentElement + " h1").css("font-size", mediaBoxConfig.headerFontSize * mediaBoxConfig.containerHeight + "px");
+    $(mediaBoxConfig.parentElement + " p").css("font-size", mediaBoxConfig.descriptionFontSize * mediaBoxConfig.containerHeight + "px");
+
+    $("#separator").css("border-width", mediaBoxConfig.borderWidth * mediaBoxConfig.containerWidth + "px");
+};
 
 const setContainerSize = () => {
     tieredTimelineConfig.containerHeight = document.getElementById("tiered-timeline").getBoundingClientRect().height;
@@ -128,6 +149,11 @@ const setContainerSize = () => {
 
     timelineConfig.containerHeight = document.getElementById("simple-timeline").getBoundingClientRect().height;
     timelineConfig.containerWidth = document.getElementById("simple-timeline").getBoundingClientRect().width;
+
+    mediaBoxConfig.containerHeight = document.getElementById("media-focus").getBoundingClientRect().height;
+    mediaBoxConfig.containerWidth = document.getElementById("media-focus").getBoundingClientRect().width;
+
+    resizeMediaBox();
 };
 
 const getTimeInYears = ({unit: unit, value: value}) => {
@@ -147,7 +173,15 @@ window.addEventListener('load', () => {
     data = processData(eoasLabAndHomininHallData, eoasLabAndHomininHallDataAnchors);
 
     tieredTimeline = new TieredTimeline(tieredTimelineConfig, data.slice(0, currentIndex));
-    timeline = new Timeline(timelineConfig, data[data.length - 1].time, data[0].time);
+    timeline = new Timeline(timelineConfig,
+        {
+            label: data[data.length - 1].label,
+            time: data[data.length - 1].time
+        },
+        {
+            label: data[0].label,
+            time: data[0].time
+        });
 });
 
 window.addEventListener('resize', () => {

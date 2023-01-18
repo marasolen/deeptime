@@ -156,8 +156,14 @@ class TieredTimeline {
     setupChart(animationDuration) {
         const vis = this;
 
-        vis.width = vis.config.containerWidth - vis.config.margin.left - vis.config.margin.right;
-        vis.height = vis.config.containerHeight - vis.config.margin.top - vis.config.margin.bottom;
+        vis.margin = {};
+        vis.margin.top = vis.config.containerHeight * vis.config.margin.top;
+        vis.margin.right = vis.config.containerWidth * vis.config.margin.right;
+        vis.margin.bottom = vis.config.containerHeight * vis.config.margin.bottom;
+        vis.margin.left = vis.config.containerWidth * vis.config.margin.left;
+
+        vis.width = vis.config.containerWidth - vis.margin.left - vis.margin.right;
+        vis.height = vis.config.containerHeight - vis.margin.top - vis.margin.bottom;
 
         vis.yScale
             .range([vis.height, 0]);
@@ -179,7 +185,6 @@ class TieredTimeline {
         });
 
         vis.areas = [];
-        console.log(areaAnchorSets)
         const generateArea = (anchorSet, lastPositionI, currPositionI, numIterations) => {
             const area = [];
 
@@ -217,13 +222,13 @@ class TieredTimeline {
             .attr('height', vis.config.containerHeight);
 
         vis.chartAreas
-            .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
+            .attr('transform', `translate(${vis.margin.left},${vis.margin.top})`);
         vis.chartStandardLines
-            .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
+            .attr('transform', `translate(${vis.margin.left},${vis.margin.top})`);
         vis.chartExpandingLine
-            .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
+            .attr('transform', `translate(${vis.margin.left},${vis.margin.top})`);
         vis.chartAnnotations
-            .attr('transform', `translate(${vis.config.margin.left},${vis.config.margin.top})`);
+            .attr('transform', `translate(${vis.margin.left},${vis.margin.top})`);
 
         vis.renderVis(animationDuration);
     }
@@ -236,6 +241,8 @@ class TieredTimeline {
         const vis = this;
 
         let timePeriodColours = d3.scaleOrdinal(d3.schemeCategory10);
+
+        const connectorLineWidth = 0.1 / 100 * vis.width;
 
         vis.chartAreas.selectAll(".area")
             .data(vis.areas)
@@ -260,9 +267,12 @@ class TieredTimeline {
             .attr("y1", ec => vis.yScale(vis.data[ec.early.group].time))
             .attr("x2", ec => vis.data[ec.late.group].xScale(vis.data[ec.late.group].events[ec.late.element].time))
             .attr("y2", ec => vis.yScale(vis.data[ec.late.group].time))
+            .attr("stroke-width", connectorLineWidth)
             .style("stroke", "red")
-            .style("stroke-width", 2)
             .attr("stroke-opacity", 0.2);
+
+        const archiveLineHeight = 1.5 / 100 * vis.height;
+        const archiveFontSize = 1.3 / 100 * vis.height;
 
         vis.data.forEach((d, j) => {
             vis.chartStandardLines.selectAll(".segments-" + d.time)
@@ -276,7 +286,7 @@ class TieredTimeline {
                 .attr("x2", s => d.xScale(s.start))
                 .attr("y2", _ => vis.yScale(d.time))
                 .style("stroke", (_, i) => timePeriodColours(i))
-                .style("stroke-width", "10px")
+                .style("stroke-width", archiveLineHeight + "px")
                 .attr("stroke-opacity", 1);
 
             vis.chartAnnotations.selectAll(".event-line-" + d.time)
@@ -288,9 +298,9 @@ class TieredTimeline {
                 .attr("x1", e => d.xScale(e.time))
                 .attr("y1", _ => vis.yScale(d.time))
                 .attr("x2", e => d.xScale(e.time))
-                .attr("y2", e => vis.yScale(d.time) - (e.labelLevel + 1) * 10)
+                .attr("y2", e => vis.yScale(d.time) - (e.labelLevel + 0.8) * 1 * archiveFontSize)
                 .style("stroke", "red")
-                .style("stroke-width", 3)
+                .attr("stroke-width", connectorLineWidth)
                 .attr("stroke-opacity", _ => j === vis.data.length - 1 ? 0 : 0.2);
 
             vis.chartAnnotations.selectAll(".event-marker-" + d.time)
@@ -299,10 +309,10 @@ class TieredTimeline {
                 .transition()
                 .duration(animationDuration)
                 .attr("class", "event-marker-" + d.time)
-                .attr("x", e => d.xScale(e.time) - 3)
-                .attr("y", _ => vis.yScale(d.time) - 5)
-                .attr("width", 6)
-                .attr("height", 10)
+                .attr("x", e => d.xScale(e.time) - 0.3 * archiveLineHeight)
+                .attr("y", _ => vis.yScale(d.time) - 0.5 * archiveLineHeight)
+                .attr("width", 0.6 * archiveLineHeight)
+                .attr("height", archiveLineHeight)
                 .attr("fill", "black")
                 .attr("stroke", "none")
                 .attr("opacity", e => j === vis.data.length - 1 ? 0 : e.copy ? 0.4 : 1);
@@ -314,19 +324,22 @@ class TieredTimeline {
                 .duration(animationDuration)
                 .attr("class", "event-text-" + d.time)
                 .attr("x", e => d.xScale(e.time))
-                .attr("y", e => vis.yScale(d.time) - (e.labelLevel + 1) * 10)
+                .attr("y", e => vis.yScale(d.time) - (e.labelLevel + 1) * 1.1 * archiveFontSize)
                 .attr("opacity", _ => j === vis.data.length - 1 ? 0 : 1)
                 .style('text-anchor', 'middle')
-                .style("font-size", "0.7em")
+                .style("font-size", archiveFontSize + "px")
                 .text(e => e.label);
         });
+
+        const expandingLineHeight = 4.5 / 100 * vis.height;
+        const expandingFontSize = 1.7 / 100 * vis.height;
 
         vis.chartExpandingLine.selectAll(".segments-main")
             .data(vis.main.segments)
             .join("line")
             .attr("class", "segments-main")
             .attr("stroke-opacity", 1)
-            .style("stroke-width", "40px")
+            .style("stroke-width", expandingLineHeight + "px")
             .style("stroke", (_, i) => timePeriodColours(i))
             .transition()
             .duration(animationDuration)
@@ -344,21 +357,21 @@ class TieredTimeline {
             .attr("x1", e => vis.main.xScale(e.time))
             .attr("y1", _ => vis.yScale(vis.main.time))
             .attr("x2", e => vis.main.xScale(e.time))
-            .attr("y2", e => vis.yScale(vis.main.time) - (e.labelLevel + 2) * 15)
+            .attr("y2", e => vis.yScale(vis.main.time) - (e.labelLevel + 0.8) * 2 * expandingFontSize)
             .style("stroke", "red")
-            .style("stroke-width", 3)
+            .attr("stroke-width", connectorLineWidth)
             .attr("stroke-opacity", e => (e.hidden || e.copy) ? 0 : 0.2);
 
         vis.chartAnnotations.selectAll(".event-marker-main")
             .data(vis.main.events)
             .join("rect")
-            .attr("height", 40)
-            .attr("y", _ => vis.yScale(vis.main.time) - 20)
+            .attr("height", expandingLineHeight)
+            .attr("y", _ => vis.yScale(vis.main.time) - expandingLineHeight / 2)
             .transition()
             .duration(animationDuration)
             .attr("class", "event-marker-main")
-            .attr("x", e => vis.main.xScale(e.time) - 5)
-            .attr("width", 10)
+            .attr("x", e => vis.main.xScale(e.time) - 0.125 * expandingLineHeight)
+            .attr("width", 0.25 * expandingLineHeight)
             .attr("fill", "black")
             .attr("stroke", "none")
             .attr("opacity", e => e.hidden ? 0 : e.copy ? 0.4 : 1);
@@ -366,8 +379,8 @@ class TieredTimeline {
         vis.chartAnnotations.selectAll(".event-text-main")
             .data(vis.main.events)
             .join("text")
-            .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 2) * 15)
-            .style("font-size", "0.9em")
+            .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize - expandingFontSize)
+            .style("font-size", expandingFontSize + "px")
             .transition()
             .duration(animationDuration)
             .attr("x", e => vis.main.xScale(e.time))
@@ -375,6 +388,19 @@ class TieredTimeline {
             .attr("opacity", e => (e.hidden || e.copy) ? 0 : 1)
             .style('text-anchor', 'middle')
             .text(e => e.label);
+
+        vis.chartAnnotations.selectAll(".event-years-main")
+            .data(vis.main.events)
+            .join("text")
+            .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize)
+            .style("font-size", expandingFontSize + "px")
+            .transition()
+            .duration(animationDuration)
+            .attr("x", e => vis.main.xScale(e.time))
+            .attr("class", "event-years-main")
+            .attr("opacity", e => (e.hidden || e.copy) ? 0 : 1)
+            .style('text-anchor', 'middle')
+            .text(e => e.time + " years");
 
         document.getElementById("media-title").innerText = vis.main.label;
         document.getElementById("media-description").innerText = "A description of " + vis.main.label + ".";
