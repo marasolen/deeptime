@@ -23,6 +23,8 @@ class TieredTimeline {
 
         vis.yScale = d3.scaleLog();
 
+        vis.numberFormatter = d3.format(".3~s");
+
         vis.areaGen = a => {
             let path = "M";
             a.forEach(p => {
@@ -78,11 +80,11 @@ class TieredTimeline {
         vis.main = JSON.parse(JSON.stringify(vis.data[vis.data.length - 1]));
         vis.main.xScale = vis.data[vis.data.length - 1].xScale;
 
-        vis.minFloor = max === min ? min - 1 : min;
-        vis.maxCeil = max;
+        vis.min = max === min ? min - 1 : min;
+        vis.max = max;
 
         vis.yScale
-            .domain([vis.minFloor, vis.maxCeil]);
+            .domain([vis.min, vis.max]);
 
         vis.setupChart(0)
     }
@@ -90,32 +92,57 @@ class TieredTimeline {
     /**
      * Animate the addition of a new timeline.
      * @param data - object, the new timeline to add
+     * @param archive - boolean, true if the function should generate a new archive timeline
      */
-    nextTime(data) {
+    nextTime(data, archive) {
         const vis = this;
 
-        vis.data.push(data);
-        vis.processDataItem(vis.data[vis.data.length - 1], vis.data.length - 1, vis.data[vis.data.length - 2])
+        let existingEvents;
 
-        let existingEvents = JSON.parse(JSON.stringify(vis.main.events));
-        existingEvents.forEach(e => {
-            if (e.copy) {
-                e.hidden = true;
-            }
+        if (archive) {
+            vis.data.push(data);
+            vis.processDataItem(vis.data[vis.data.length - 1], vis.data.length - 1, vis.data[vis.data.length - 2])
 
-            if (!e.copy && !e.hidden) {
-                e.copy = true;
-            }
-        });
+            existingEvents = JSON.parse(JSON.stringify(vis.main.events));
+            existingEvents.forEach(e => {
+                if (e.copy) {
+                    e.hidden = true;
+                }
+
+                if (!e.copy && !e.hidden) {
+                    e.copy = true;
+                }
+            });
+
+            existingEvents.push(...JSON.parse(JSON.stringify(vis.data[vis.data.length - 1].events)).filter(s => !s.copy));
+        } else {
+            vis.eventConnectors = vis.eventConnectors.filter(ec => ec.late.group !== vis.data.length - 1);
+
+            vis.data.splice(vis.data.length - 1, 1, data);
+            vis.processDataItem(vis.data[vis.data.length - 1], vis.data.length - 1, vis.data[vis.data.length - 2])
+
+            existingEvents = JSON.parse(JSON.stringify(vis.main.events));
+
+            const generateUniqueIdForEvent = (e) => e.label + "--" + e.time;
+
+            const existingEventsLabelsAndTimes = existingEvents.map(generateUniqueIdForEvent);
+            const newEvents = vis.data[vis.data.length - 1].events.filter(e => !e.copy && !e.hidden &&
+                !existingEventsLabelsAndTimes.includes(generateUniqueIdForEvent(e)));
+
+            existingEvents.push(...newEvents);
+        }
 
         vis.main = JSON.parse(JSON.stringify(vis.data[vis.data.length - 1]));
-        vis.main.xScale = vis.data[vis.data.length - 1].xScale;
-
-        existingEvents.push(...JSON.parse(JSON.stringify(vis.data[vis.data.length - 1].events)).filter(s => !s.copy));
         vis.main.events = existingEvents;
 
+        vis.main.xScale = vis.data[vis.data.length - 1].xScale;
+
+        if (vis.data.length > 1) {
+            vis.min = vis.data[0].time;
+        }
+
         vis.yScale
-            .domain([vis.minFloor, data.time]);
+            .domain([vis.min, data.time]);
 
         vis.setupChart(animationDuration);
     }
@@ -177,7 +204,7 @@ class TieredTimeline {
         vis.data.forEach((d, i) => {
             const areaAnchorSet = [];
             vis.data.slice(i, i + numAreaExtensions).forEach((f, j) => {
-                areaAnchorSet.push({ time: d.time, x: f.time, y: vis.yScale(f.time),
+                areaAnchorSet.push({ time: d.time, x: f.xScale(f.time), y: vis.yScale(f.time),
                     w: j + i === vis.data.length - 1 ? vis.width : vis.width / 2 });
             });
 
@@ -194,11 +221,15 @@ class TieredTimeline {
             if (numIterations !== 0) {
                 const yDiff = currPosition.y - lastPosition.y;
 
+                const widthScale = d3.scalePow()
+                    .exponent(1.5)
+                    .domain([0, 10])
+                    .range([lastPosition.w, currPosition.w]);
+
                 for (let i = 0; i <= 10; i++) {
                     const yPosition = lastPosition.y + i * yDiff / 10;
-                    const width = lastPosition.w + (currPosition.w - lastPosition.w) *
-                        (vis.yScale.invert(yPosition) / currPosition.x - (10 - i) / 10 * lastPosition.x / currPosition.x);
-                    area.push({ x: (-lastPosition.time / vis.yScale.invert(yPosition)) * width + vis.width, y: yPosition, t: "L" })
+                    console.log(widthScale(i));
+                    area.push({ x: vis.width - widthScale(i) * lastPosition.time / vis.yScale.invert(yPosition), y: yPosition, t: "L" })
                 }
 
                 area.push(...generateArea(anchorSet,
@@ -400,7 +431,7 @@ class TieredTimeline {
             .attr("class", "event-years-main")
             .attr("opacity", e => (e.hidden || e.copy) ? 0 : 1)
             .style('text-anchor', 'middle')
-            .text(e => e.time + " years");
+            .text(e => vis.numberFormatter(e.time) + " years");
 
         document.getElementById("media-title").innerText = vis.main.label;
         document.getElementById("media-description").innerText = "A description of " + vis.main.label + ".";

@@ -12,13 +12,6 @@ const eoasLabAndHomininHallDataAnchors = [
 
 const eoasLabAndHomininHallData = [
     {
-        "label": "Mara Born",
-        "time": {
-            "unit": "years",
-            "value": 24
-        }
-    },
-    {
         "label": "Jurassic Park Premieres",
         "time": {
             "unit": "years",

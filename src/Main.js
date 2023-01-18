@@ -43,9 +43,12 @@ const datasets = {
 const animationDuration = 2000;
 
 let data;
-let currentIndex = 1;
 
-let pressNext = false;
+let currentGroupIndex = 0;
+let currentEventIndex = 0;
+
+let pressNextEvent = false;
+let pressNextEventGroup = false
 
 const processData = (data, ideals) => {
     data = data.sort((a, b) => {
@@ -93,27 +96,66 @@ const processData = (data, ideals) => {
 let tieredTimeline;
 let timeline;
 
+const getSlicedData = () => {
+    const dataCopy = JSON.parse(JSON.stringify(data)).slice(0, currentGroupIndex + 1);
+    dataCopy[currentGroupIndex].events = dataCopy[currentGroupIndex].events.slice(0, currentEventIndex + 1);
+    dataCopy[currentGroupIndex].label = dataCopy[currentGroupIndex].events[currentEventIndex].label;
+    dataCopy[currentGroupIndex].time = dataCopy[currentGroupIndex].events[currentEventIndex].time;
+
+    return dataCopy;
+};
+
 const setButtonFunctions = () => {
     document.onkeydown = (event) => {
-        if (event.key !== "ArrowRight") {
-            return;
+        if (event.key === "ArrowRight") {
+            pressNextEvent = true;
         }
 
-        pressNext = true;
+        if (event.key === "ArrowUp") {
+            pressNextEventGroup = true;
+        }
     };
 
     document.onkeyup = (event) => {
-        if (event.key !== "ArrowRight") {
-            return;
+        if (event.key === "ArrowRight" && pressNextEvent) {
+            pressNextEvent = false
+
+            if (currentEventIndex + 1 < data[currentGroupIndex].events.length) {
+                currentEventIndex += 1;
+
+                const dataCopy = getSlicedData();
+
+                tieredTimeline.nextTime(dataCopy[currentGroupIndex], false);
+                timeline.nextTime(data[currentGroupIndex]);
+            } else if (currentGroupIndex + 1 < data.length) {
+                currentGroupIndex += 1;
+                currentEventIndex = 0;
+
+                const dataCopy = getSlicedData();
+
+                tieredTimeline.nextTime(dataCopy[currentGroupIndex], true);
+                timeline.nextTime({ label: dataCopy[currentGroupIndex].label, time: dataCopy[currentGroupIndex].time });
+            }
         }
 
-        if (pressNext) {
-            pressNext = false
+        if (event.key === "ArrowUp" && pressNextEventGroup) {
+            pressNextEventGroup = false
 
-            if (currentIndex < data.length) {
-                tieredTimeline.nextTime(data[currentIndex]);
-                timeline.nextTime({ label: data[currentIndex].label, time: data[currentIndex].time } );
-                currentIndex += 1;
+            if (currentEventIndex + 1 < data[currentGroupIndex].events.length) {
+                currentEventIndex = data[currentGroupIndex].events.length - 1;
+
+                const dataCopy = getSlicedData();
+
+                tieredTimeline.nextTime(dataCopy[currentGroupIndex], false);
+                timeline.nextTime(data[currentGroupIndex]);
+            } else if (currentGroupIndex + 1 < data.length) {
+                currentGroupIndex += 1;
+                currentEventIndex = data[currentGroupIndex].events.length - 1;
+
+                const dataCopy = getSlicedData();
+
+                tieredTimeline.nextTime(dataCopy[currentGroupIndex], true);
+                timeline.nextTime({ label: dataCopy[currentGroupIndex].label, time: dataCopy[currentGroupIndex].time });
             }
         }
     };
@@ -134,7 +176,6 @@ const changeDataset = () => {
 */
 
 const resizeMediaBox = () => {
-    console.log(mediaBoxConfig);
     $(mediaBoxConfig.parentElement).css("border-width", mediaBoxConfig.borderWidth * mediaBoxConfig.containerWidth + "px");
     $(mediaBoxConfig.parentElement).css("border-radius", 6 * mediaBoxConfig.borderWidth * mediaBoxConfig.containerWidth + "px");
     $(mediaBoxConfig.parentElement + " h1").css("font-size", mediaBoxConfig.headerFontSize * mediaBoxConfig.containerHeight + "px");
@@ -163,7 +204,7 @@ const getTimeInYears = ({unit: unit, value: value}) => {
         default:
             return value;
     }
-}
+};
 
 window.addEventListener('load', () => {
     setButtonFunctions();
@@ -172,7 +213,9 @@ window.addEventListener('load', () => {
 
     data = processData(eoasLabAndHomininHallData, eoasLabAndHomininHallDataAnchors);
 
-    tieredTimeline = new TieredTimeline(tieredTimelineConfig, data.slice(0, currentIndex));
+    const dataCopy = getSlicedData();
+
+    tieredTimeline = new TieredTimeline(tieredTimelineConfig, dataCopy);
     timeline = new Timeline(timelineConfig,
         {
             label: data[data.length - 1].label,
