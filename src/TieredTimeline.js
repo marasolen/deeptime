@@ -313,7 +313,7 @@ class TieredTimeline {
             .attr("x2", ec => vis.data[ec.late.group].xScale(vis.data[ec.late.group].events[ec.late.element].time))
             .attr("y2", ec => vis.yScale(vis.data[ec.late.group].time))
             .attr("stroke-width", connectorLineWidth)
-            .style("stroke", "red")
+            .style("stroke", "black")
             .attr("stroke-opacity", 0.2);
 
         const archiveLineHeight = 1.5 / 100 * vis.height;
@@ -344,7 +344,7 @@ class TieredTimeline {
                 .attr("y1", _ => vis.yScale(d.time))
                 .attr("x2", e => d.xScale(e.time))
                 .attr("y2", e => vis.yScale(d.time) - (e.labelLevel + 0.8) * 1 * archiveFontSize)
-                .style("stroke", "red")
+                .style("stroke", "black")
                 .attr("stroke-width", connectorLineWidth)
                 .attr("stroke-opacity", _ => j === vis.data.length - 1 ? 0 : 0.2);
 
@@ -355,11 +355,13 @@ class TieredTimeline {
                 .duration(animationDuration)
                 .attr("class", "event-marker-" + d.time)
                 .attr("x", e => d.xScale(e.time) - 0.3 * archiveLineHeight)
-                .attr("y", _ => vis.yScale(d.time) - 0.5 * archiveLineHeight)
+                .attr("y", _ => vis.yScale(d.time) - 0.5 * 1.1 * archiveLineHeight)
                 .attr("width", 0.6 * archiveLineHeight)
-                .attr("height", archiveLineHeight)
+                .attr("height", 1.1 * archiveLineHeight)
                 .attr("fill", "black")
                 .attr("stroke", "none")
+                .attr("rx", 0.10 * archiveLineHeight)
+                .attr("ry", 0.10 * archiveLineHeight)
                 .attr("opacity", e => j === vis.data.length - 1 ? 0 : e.copy ? 0.4 : 1);
 
             vis.chartAnnotations.selectAll(".event-text-" + d.time)
@@ -403,15 +405,15 @@ class TieredTimeline {
             .attr("y1", _ => vis.yScale(vis.main.time))
             .attr("x2", e => vis.main.xScale(e.time))
             .attr("y2", e => vis.yScale(vis.main.time) - (e.labelLevel + 0.8) * 2 * expandingFontSize)
-            .style("stroke", "red")
+            .style("stroke", "black")
             .attr("stroke-width", connectorLineWidth)
             .attr("stroke-opacity", e => (e.hidden || e.copy) ? 0 : 0.2);
 
         vis.chartAnnotations.selectAll(".event-marker-main")
             .data(vis.main.events)
             .join("rect")
-            .attr("height", expandingLineHeight)
-            .attr("y", _ => vis.yScale(vis.main.time) - expandingLineHeight / 2)
+            .attr("height", 1.1 * expandingLineHeight)
+            .attr("y", _ => vis.yScale(vis.main.time) - 1.1 * expandingLineHeight / 2)
             .transition()
             .duration(animationDuration)
             .attr("class", "event-marker-main")
@@ -419,6 +421,8 @@ class TieredTimeline {
             .attr("width", 0.25 * expandingLineHeight)
             .attr("fill", "black")
             .attr("stroke", "none")
+            .attr("rx", 0.10 * expandingLineHeight)
+            .attr("ry", 0.10 * expandingLineHeight)
             .attr("opacity", e => e.hidden ? 0 : e.copy ? 0.4 : 1);
 
         vis.chartAnnotations.selectAll(".event-text-main")

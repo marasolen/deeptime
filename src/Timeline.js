@@ -111,7 +111,7 @@ class Timeline {
         const vis = this;
 
         const barHeight = 0.2 * vis.height;
-        const fontSize = 0.5 * barHeight;
+        const fontSize = 0.45 * barHeight;
 
         vis.chartSegment.selectAll(".segment")
             .data([null])
@@ -132,11 +132,13 @@ class Timeline {
             .duration(animationDuration)
             .attr("class", "here-marker")
             .attr("x", d => vis.xScale(d.time) - 0.1 * barHeight)
-            .attr("y", vis.height / 2 - barHeight / 2)
+            .attr("y", vis.height / 2 - 1.1 * barHeight / 2)
             .attr("width", 0.2 * barHeight)
-            .attr("height", barHeight + "px")
+            .attr("height", 1.1 * barHeight)
             .attr("fill", "black")
             .attr("stroke", "none")
+            .attr("rx", 0.10 * barHeight)
+            .attr("ry", 0.10 * barHeight)
             .attr("opacity", 1);
 
         vis.chartAnnotations.selectAll(".here-text")
