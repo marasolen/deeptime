@@ -180,6 +180,7 @@ const changeDataset = () => {
 const resizeMediaBox = () => {
     $(mediaBoxConfig.parentElement).css("border-width", mediaBoxConfig.borderWidth * mediaBoxConfig.containerWidth + "px");
     $(mediaBoxConfig.parentElement).css("border-radius", 6 * mediaBoxConfig.borderWidth * mediaBoxConfig.containerWidth + "px");
+    $(mediaBoxConfig.parentElement).css("padding", 6 * mediaBoxConfig.borderWidth * mediaBoxConfig.containerWidth + "px");
     $(mediaBoxConfig.parentElement + " h1").css("font-size", mediaBoxConfig.headerFontSize * mediaBoxConfig.containerHeight + "px");
     $(mediaBoxConfig.parentElement + " p").css("font-size", mediaBoxConfig.descriptionFontSize * mediaBoxConfig.containerHeight + "px");
 

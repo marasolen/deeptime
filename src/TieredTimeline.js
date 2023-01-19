@@ -116,8 +116,6 @@ class TieredTimeline {
 
             existingEvents.push(...JSON.parse(JSON.stringify(vis.data[vis.data.length - 1].events)).filter(s => !s.copy));
         } else {
-            vis.eventConnectors = vis.eventConnectors.filter(ec => ec.late.group !== vis.data.length - 1);
-
             vis.data.splice(vis.data.length - 1, 1, data);
             vis.processDataItem(vis.data[vis.data.length - 1], vis.data.length - 1, vis.data[vis.data.length - 2])
 
@@ -159,10 +157,27 @@ class TieredTimeline {
         d.xScale = d3.scaleLinear()
             .domain([d.time, 0]);
 
+        const numExistingEvents = vis.eventConnectors.filter(ec => ec.early.group === i && ec.late.group === i).length;
+        const numNewEvents = d.events.length - numExistingEvents;
+        vis.eventConnectors.push(...d.events.slice(numExistingEvents).map((e, j) => {
+            return { early: { group: i, element: numExistingEvents + j }, late: { group: i, element: numExistingEvents + j } };
+        }));
+
         if (lastEvent) {
-            lastEvent.events.filter(e => !e.copy).forEach((e, j) => {
-                vis.eventConnectors.push({ early: { group: i - 1, element: j }, late: { group: i, element: d.events.length } });
+            const numNonCopyEvents = d.events.length;
+            lastEvent.events.filter(e => !e.copy).forEach(e => {
                 d.events.push({ label: e.label, time: e.time, copy: true });
+            });
+
+            vis.eventConnectors.forEach(ec => {
+                if (ec.early.group === i - 1) {
+                    if (ec.late.group === i - 1) {
+                        ec.late.group = i;
+                        ec.late.element += numNonCopyEvents;
+                    } else if (ec.late.group === i) {
+                        ec.late.element += numNewEvents;
+                    }
+                }
             });
 
             d.segments = JSON.parse(JSON.stringify(lastEvent.segments));
@@ -228,7 +243,6 @@ class TieredTimeline {
 
                 for (let i = 0; i <= 10; i++) {
                     const yPosition = lastPosition.y + i * yDiff / 10;
-                    console.log(widthScale(i));
                     area.push({ x: vis.width - widthScale(i) * lastPosition.time / vis.yScale.invert(yPosition), y: yPosition, t: "L" })
                 }
 

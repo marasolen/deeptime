@@ -111,7 +111,7 @@ class Timeline {
         const vis = this;
 
         const barHeight = 0.2 * vis.height;
-        const fontSize = 0.6 * barHeight;
+        const fontSize = 0.5 * barHeight;
 
         vis.chartSegment.selectAll(".segment")
             .data([null])
@@ -157,7 +157,7 @@ class Timeline {
             .join("text")
             .attr("class", "end-texts")
             .attr("x", d => vis.xScale(d.time))
-            .attr("y", vis.height / 2 - 2.4 * fontSize)
+            .attr("y", vis.height / 2 - 2.8 * fontSize)
             .attr("opacity", 1)
             .style('text-anchor', 'middle')
             .style("font-size", fontSize + "px")
@@ -168,7 +168,7 @@ class Timeline {
             .join("text")
             .attr("class", "end-years")
             .attr("x", d => vis.xScale(d.time))
-            .attr("y", vis.height / 2 - 1.2 * fontSize)
+            .attr("y", vis.height / 2 - 1.4 * fontSize)
             .attr("opacity", 1)
             .style('text-anchor', 'middle')
             .style("font-size", fontSize + "px")
