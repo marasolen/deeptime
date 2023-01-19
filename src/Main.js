@@ -3,10 +3,10 @@ const timelineConfig = {
     containerWidth: 1,
     containerHeight: 1,
     margin: {
-        top:    0 / 100,
-        right:  3 / 100,
-        bottom: 0 / 100,
-        left:   3 / 100
+        top:    0.0 / 100,
+        right:  5.0 / 100,
+        bottom: 0.0 / 100,
+        left:   5.0 / 100
     }
 }
 
@@ -16,9 +16,9 @@ const tieredTimelineConfig = {
     containerHeight: 1,
     margin: {
         top:    16.3 / 100,
-        right:   4.3 / 100,
+        right:   5.0 / 100,
         bottom:  1.8 / 100,
-        left:    4.3 / 100
+        left:    5.0 / 100
     }
 };
 
