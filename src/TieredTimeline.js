@@ -23,7 +23,14 @@ class TieredTimeline {
 
         vis.yScale = d3.scaleLog();
 
-        vis.numberFormatter = d3.format(".3~s");
+        vis.numberFormatter = (n) => {
+            let base = d3.format(".3~s")(n);
+            base = base.replaceAll("k", " thousand")
+                .replaceAll("M", " million")
+                .replaceAll("G", " billion");
+
+            return base;
+        }
 
         vis.areaGen = a => {
             let path = "M";
@@ -56,6 +63,10 @@ class TieredTimeline {
      */
     updateData(data) {
         const vis = this;
+
+        if (vis.data) {
+            vis.oldDataNum = vis.data.length;
+        }
 
         if (data) {
             vis.data = data;
@@ -319,13 +330,19 @@ class TieredTimeline {
         const archiveLineHeight = 1.5 / 100 * vis.height;
         const archiveFontSize = 1.3 / 100 * vis.height;
 
+        const expandingLineHeight = 4.5 / 100 * vis.height;
+        const expandingFontSize = 1.7 / 100 * vis.height;
+
         vis.data.forEach((d, j) => {
-            vis.chartStandardLines.selectAll(".segments-" + d.time)
+            const nonCopyEvents = d.events.filter(d => !d.copy);
+            const sliceValue = nonCopyEvents[nonCopyEvents.length - 1].label === d.label ? -1 : nonCopyEvents.length;
+
+            vis.chartStandardLines.selectAll(".segments-" + j)
                 .data(d.segments)
                 .join("line")
                 .transition()
                 .duration(animationDuration)
-                .attr("class", "segments-" + d.time)
+                .attr("class", "segments-" + j)
                 .attr("x1", s => d.xScale(s.end))
                 .attr("y1", _ => vis.yScale(d.time))
                 .attr("x2", s => d.xScale(s.start))
@@ -334,12 +351,12 @@ class TieredTimeline {
                 .style("stroke-width", archiveLineHeight + "px")
                 .attr("stroke-opacity", 1);
 
-            vis.chartAnnotations.selectAll(".event-line-" + d.time)
-                .data(d.events.filter(d => !d.copy))
+            vis.chartAnnotations.selectAll(".event-line-" + j)
+                .data(d.events.filter(d => !d.copy).slice(0, sliceValue))
                 .join("line")
                 .transition()
                 .duration(animationDuration)
-                .attr("class", "event-line-" + d.time)
+                .attr("class", "event-line-" + j)
                 .attr("x1", e => d.xScale(e.time))
                 .attr("y1", _ => vis.yScale(d.time))
                 .attr("x2", e => d.xScale(e.time))
@@ -348,12 +365,12 @@ class TieredTimeline {
                 .attr("stroke-width", connectorLineWidth)
                 .attr("stroke-opacity", _ => j === vis.data.length - 1 ? 0 : 0.2);
 
-            vis.chartAnnotations.selectAll(".event-marker-" + d.time)
+            vis.chartAnnotations.selectAll(".event-marker-" + j)
                 .data(d.events)
                 .join("rect")
                 .transition()
                 .duration(animationDuration)
-                .attr("class", "event-marker-" + d.time)
+                .attr("class", "event-marker-" + j)
                 .attr("x", e => d.xScale(e.time) - 0.3 * archiveLineHeight)
                 .attr("y", _ => vis.yScale(d.time) - 0.5 * 1.1 * archiveLineHeight)
                 .attr("width", 0.6 * archiveLineHeight)
@@ -364,22 +381,71 @@ class TieredTimeline {
                 .attr("ry", 0.10 * archiveLineHeight)
                 .attr("opacity", e => j === vis.data.length - 1 ? 0 : e.copy ? 0.4 : 1);
 
-            vis.chartAnnotations.selectAll(".event-text-" + d.time)
-                .data(d.events.filter(d => !d.copy))
+            vis.chartAnnotations.selectAll(".event-text-" + j)
+                .data(d.events.filter(d => !d.copy).slice(0, sliceValue))
                 .join("text")
                 .transition()
                 .duration(animationDuration)
-                .attr("class", "event-text-" + d.time)
+                .attr("class", "event-text-" + j)
                 .attr("x", e => d.xScale(e.time))
                 .attr("y", e => vis.yScale(d.time) - (e.labelLevel + 1) * 1.1 * archiveFontSize)
                 .attr("opacity", _ => j === vis.data.length - 1 ? 0 : 1)
                 .style('text-anchor', 'middle')
                 .style("font-size", archiveFontSize + "px")
                 .text(e => e.label);
+
+            vis.chartAnnotations.selectAll(".event-group-label-" + j)
+                .data([d])
+                .join("text")
+                .transition()
+                .duration(animationDuration)
+                .attr("class", "event-group-label-" + j)
+                .attr("x", e => d.xScale(e.time) - expandingFontSize)
+                .attr("y", e => vis.yScale(d.time) - 0.2 * expandingFontSize)
+                .attr("opacity", _ => j === vis.data.length - 1 ? 0 : 1)
+                .style('text-anchor', 'end')
+                .style("font-size", expandingFontSize + "px")
+                .text(e => e.label);
+
+            vis.chartAnnotations.selectAll(".event-group-time-" + j)
+                .data([d])
+                .join("text")
+                .transition()
+                .duration(animationDuration)
+                .attr("class", "event-group-time-" + j)
+                .attr("x", e => d.xScale(e.time) - expandingFontSize)
+                .attr("y", e => vis.yScale(d.time) + 0.8 * expandingFontSize)
+                .attr("opacity", _ => j === vis.data.length - 1 ? 0 : 1)
+                .style('text-anchor', 'end')
+                .style("font-size", expandingFontSize + "px")
+                .text(e => vis.numberFormatter(e.time) + " years");
         });
 
-        const expandingLineHeight = 4.5 / 100 * vis.height;
-        const expandingFontSize = 1.7 / 100 * vis.height;
+        for (let j = vis.data.length; j < vis.oldDataNum; j++) {
+            vis.chartStandardLines.selectAll(".segments-" + j)
+                .data([])
+                .join("line");
+
+            vis.chartAnnotations.selectAll(".event-line-" + j)
+                .data([])
+                .join("line");
+
+            vis.chartAnnotations.selectAll(".event-marker-" + j)
+                .data([])
+                .join("rect");
+
+            vis.chartAnnotations.selectAll(".event-text-" + j)
+                .data([])
+                .join("text");
+
+            vis.chartAnnotations.selectAll(".event-group-label-" + j)
+                .data()
+                .join("text");
+
+            vis.chartAnnotations.selectAll(".event-group-time-" + j)
+                .data()
+                .join("text");
+        }
 
         vis.chartExpandingLine.selectAll(".segments-main")
             .data(vis.main.segments)
@@ -451,8 +517,14 @@ class TieredTimeline {
             .style('text-anchor', 'middle')
             .text(e => vis.numberFormatter(e.time) + " years");
 
-        document.getElementById("media-title").innerText = vis.main.label;
-        document.getElementById("media-description").innerText = vis.main.description ? vis.main.description : "A description of " + vis.main.label + ".";
-        document.getElementById("media-image").src = "src/data/images/" + (vis.main.image ? vis.main.image : "noimage.jpeg");
+        let innerHTML = "";
+        innerHTML += `<h1 id=\"media-title\">${vis.main.label}</h1>`;
+        innerHTML += `<p id=\"media-description\">${vis.main.description ? vis.main.description : "A description of " + vis.main.label + "."}</p>`;
+
+        if (vis.main.image) {
+            innerHTML += `<img id="media-image" src="${"src/data/images/" + vis.main.image}">`;
+        }
+
+        document.getElementById("media-focus").innerHTML = innerHTML;
     }
 }

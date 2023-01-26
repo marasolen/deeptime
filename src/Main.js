@@ -116,6 +116,10 @@ const setButtonFunctions = () => {
         if (event.key === "ArrowUp") {
             pressNextEventGroup = true;
         }
+
+        if (event.key === "r") {
+            resetDataset = true;
+        }
     };
 
     document.onkeyup = (event) => {
@@ -141,7 +145,7 @@ const setButtonFunctions = () => {
         }
 
         if (event.key === "ArrowUp" && pressNextEventGroup) {
-            pressNextEventGroup = false
+            pressNextEventGroup = false;
 
             if (currentEventIndex + 1 < data[currentGroupIndex].events.length) {
                 currentEventIndex = data[currentGroupIndex].events.length - 1;
@@ -159,6 +163,26 @@ const setButtonFunctions = () => {
                 tieredTimeline.nextTime(dataCopy[currentGroupIndex], true);
                 timeline.nextTime({ label: dataCopy[currentGroupIndex].label, time: dataCopy[currentGroupIndex].time });
             }
+        }
+
+        if (event.key === "r" && resetDataset) {
+            pressNextEventGroup = false;
+
+            currentGroupIndex = 0;
+            currentEventIndex = 0;
+
+            const dataCopy = getSlicedData();
+
+            tieredTimeline.updateData(dataCopy);
+            timeline.updateData(
+                {
+                    label: data[data.length - 1].label,
+                    time: data[data.length - 1].time
+                },
+                {
+                    label: data[0].label,
+                    time: data[0].time
+                });
         }
     };
 };

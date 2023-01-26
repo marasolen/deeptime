@@ -22,7 +22,7 @@ class Timeline {
 
         vis.xScale = d3.scaleLinear();
 
-        vis.numberFormatter = d3.format(".3~s");
+        vis.numberFormatter = d3.format(",");
 
         // Define size of SVG drawing area
         vis.svg = d3.select(vis.config.parentElement)
@@ -159,7 +159,7 @@ class Timeline {
             .join("text")
             .attr("class", "end-texts")
             .attr("x", d => vis.xScale(d.time))
-            .attr("y", vis.height / 2 - 2.8 * fontSize)
+            .attr("y", vis.height / 2 - 3 * fontSize)
             .attr("opacity", 1)
             .style('text-anchor', 'middle')
             .style("font-size", fontSize + "px")
@@ -170,7 +170,7 @@ class Timeline {
             .join("text")
             .attr("class", "end-years")
             .attr("x", d => vis.xScale(d.time))
-            .attr("y", vis.height / 2 - 1.4 * fontSize)
+            .attr("y", vis.height / 2 - 1.5 * fontSize)
             .attr("opacity", 1)
             .style('text-anchor', 'middle')
             .style("font-size", fontSize + "px")
