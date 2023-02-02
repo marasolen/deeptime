@@ -8,9 +8,12 @@ class TieredTimeline {
      * @param config - object, information on visualization size and margins
      * @param data - object, unprocessed data
      */
-    constructor(config, data) {
+    constructor(config, data, zipContent) {
         this.config = config;
         this.data = data;
+        this.zipContent = zipContent;
+
+        this.ready = false;
 
         this.configureVis();
     }
@@ -61,8 +64,10 @@ class TieredTimeline {
      * Process the data into a usable format for the visualization. Set up the data side of the visualization.
      * @param data - object, unprocessed data
      */
-    updateData(data) {
+    updateData(data, zipContent) {
         const vis = this;
+
+        vis.ready = false;
 
         if (vis.data) {
             vis.oldDataNum = vis.data.length;
@@ -70,6 +75,10 @@ class TieredTimeline {
 
         if (data) {
             vis.data = data;
+        }
+
+        if (zipContent) {
+            vis.zipContent = zipContent;
         }
 
         let min = vis.data[0].time;
@@ -107,6 +116,8 @@ class TieredTimeline {
      */
     nextTime(data, archive) {
         const vis = this;
+
+        vis.ready = false;
 
         let existingEvents;
 
@@ -293,7 +304,7 @@ class TieredTimeline {
      * Bind data to visual elements.
      * @param animationDuration - number, the length of the animation in ms
      */
-    renderVis(animationDuration) {
+    async renderVis(animationDuration) {
         const vis = this;
 
         let timePeriodColours = d3.scaleOrdinal(d3.schemeCategory10);
@@ -439,11 +450,11 @@ class TieredTimeline {
                 .join("text");
 
             vis.chartAnnotations.selectAll(".event-group-label-" + j)
-                .data()
+                .data([])
                 .join("text");
 
             vis.chartAnnotations.selectAll(".event-group-time-" + j)
-                .data()
+                .data([])
                 .join("text");
         }
 
@@ -521,10 +532,13 @@ class TieredTimeline {
         innerHTML += `<h1 id=\"media-title\">${vis.main.label}</h1>`;
         innerHTML += `<p id=\"media-description\">${vis.main.description ? vis.main.description : "A description of " + vis.main.label + "."}</p>`;
 
-        if (vis.main.image) {
-            innerHTML += `<img id="media-image" src="${"src/data/images/" + vis.main.image}">`;
+        if (vis.main.image && vis.zipContent) {
+            const content = await vis.zipContent.files["images/" + vis.main.image].async("base64");
+            innerHTML += `<img id="media-image" src="${"data:;base64," + content}">`;
         }
 
         document.getElementById("media-focus").innerHTML = innerHTML;
+
+        vis.ready = true;
     }
 }
