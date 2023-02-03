@@ -12,6 +12,68 @@
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
     </head>
     <body>
+        <!-- Settings/Instructions -->
+        <div id="settings-instructions">
+            <div id="upload">
+                <h1>Upload Data</h1>
+                <p>A sample dataset is provided. If you would like to upload your dataset, please upload a zip file
+                    containing:</p>
+                <ul>
+                    <li>A CSV (comma separated values) file called "events.csv" with the event data. This CSV file
+                        should have 6 columns:
+                        <ol>
+                            <li>label: the label to use for the event</li>
+                            <li>description: the description of the event</li>
+                            <li>image: the name of the image file of the event</li>
+                            <li>timeunit: the unit of time of the event, one of: "years" (years ago), "year" (year
+                                number), "months", "days"</li>
+                            <li>timevalue: the value of the time of the event</li>
+                            <li>anchor?: true or false, determines whether the event is an event group delimiter</li>
+                        </ol>
+                        If every row in the anchor? column is false, the system will automatically choose event group
+                        delimiters to be approximately multiples of 10.
+                    </li>
+                    <br>
+                    <li>A folder called "images" with the images used in the event data.</li>
+                </ul>
+                <p>You may download the sample data in this format <a href="data/EOASLabAndHomininHallData/EOASLabAndHomininHallData.zip" download>here</a> as an
+                    example. Submit your zipped dataset here:</p>
+                <input type="file"
+                       id="datasetUpload"
+                       name="datasetUpload"
+                       accept=".zip">
+                <input type="button"
+                       id="datasetSubmit"
+                       value="Submit Dataset">
+            </div>
+            <div id="instructions">
+                <h1>Instructions for Use</h1>
+                <p>To continue to the next event, press the right arrow key.</p>
+                <p>To continue to the next event group, press the up arrow key.</p>
+                <p>To reset the system to the initial state, press the R key.</p>
+                <p>To open or close this menu, press the Escape key.</p>
+            </div>
+            <div id="settings">
+                <h1>Settings</h1>
+                <p>Mode (animated or interactive):</p>
+                <select id="system-mode">
+                    <option value="interactive">Interactive</option>
+                    <option value="animated">Animated</option>
+                </select>
+                <p><form id="animation-options" style="display: none">Every <input type="number" id="interval" min="1" max="6000" value="60" style="width: 20%">
+                    seconds, the system will continue to the next
+                    <input type="radio" id="animation-event" name="animation-style" checked="checked">
+                    event /
+                    <input type="radio" id="animation-event-group" name="animation-style">
+                    event group. Once it is complete, it will wait
+                    <input type="number" id="reset-delay" min="1" max="6000" value="60" style="width: 20%">
+                    seconds before restarting.
+                <input type="button"
+                       id="start-animation"
+                       value="Start Animation"></form></p>
+            </div>
+        </div>
+
         <!-- Dashboard -->
         <div id="simple-timeline"></div>
         <div id="separator"></div>
@@ -25,15 +87,10 @@
         <!-- Libraries -->
         <script src="src/libraries/d3.v7.min.js"></script>
         <script src="src/libraries/jquery-3.6.3.min.js"></script>
+        <script src="src/libraries/jszip.min.js"></script>
+        <script src="src/libraries/papaparse.min.js"></script>
 
         <!-- Source Code -->
-        <script src="src/data/EOASLabAndHomininHallData.js" type="text/javascript"></script>
-        <script src="src/data/EOASLabData.js" type="text/javascript"></script>
-        <script src="src/data/ESBData.js" type="text/javascript"></script>
-        <script src="src/data/GeoTimelineData.js" type="text/javascript"></script>
-        <script src="src/data/HomininHallData.js" type="text/javascript"></script>
-        <script src="src/data/WalkThroughTimeData.js" type="text/javascript"></script>
-
         <script src="src/Timeline.js" type="text/javascript"></script>
         <script src="src/TieredTimeline.js" type="text/javascript"></script>
         <script src="src/Main.js" type="text/javascript"></script>

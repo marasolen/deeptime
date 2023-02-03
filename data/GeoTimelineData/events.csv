@@ -1,0 +1,25 @@
+label,description,image,time/unit,time/value,anchor?
+Quaternary period begins,,,years,2600000,FALSE
+Tertiary period begins,,,years,66000000,FALSE
+Cenozoic era begins,,,years,66000000,FALSE
+Cretaceous period begins,,,years,140000000,FALSE
+Jurassic period begins,,,years,200000000,FALSE
+Triassic period begins,,,years,250000000,FALSE
+Mesozoic era begins,,,years,250000000,FALSE
+Permian period begins,,,years,300000000,FALSE
+Carboniferous period begins,,,years,360000000,FALSE
+Devonian period begins,,,years,410000000,FALSE
+Silurian period begins,,,years,440000000,FALSE
+Ordovician period begins,,,years,490000000,FALSE
+Cambrian period begins,,,years,540000000,FALSE
+Phanerozoic eon begins,,,years,540000000,FALSE
+Neoproterozoic era begins,,,years,1000000000,FALSE
+Mesoproterozoic era begins,,,years,1600000000,FALSE
+Paleoproterozoic era begins,,,years,2500000000,FALSE
+Protoerozoic eon begins,,,years,2500000000,FALSE
+Neoarchean era begins,,,years,2800000000,FALSE
+Mesoarchean era begins,,,years,3200000000,FALSE
+Paleoarchean era begins,,,years,3600000000,FALSE
+Eoarchean era begins,,,years,4000000000,FALSE
+Archean eon begins,,,years,4000000000,FALSE
+Hadean eon begins,,,years,4500000000,FALSE
