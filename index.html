@@ -55,7 +55,22 @@
             </div>
             <div id="settings">
                 <h1>Settings</h1>
-                <p>TODO</p>
+                <p>Mode (animated or interactive):</p>
+                <select id="system-mode">
+                    <option value="interactive">Interactive</option>
+                    <option value="animated">Animated</option>
+                </select>
+                <p><form id="animation-options" style="display: none">Every <input type="number" id="interval" min="1" max="6000" value="60" style="width: 20%">
+                    seconds, the system will continue to the next
+                    <input type="radio" id="animation-event" name="animation-style" checked="checked">
+                    event /
+                    <input type="radio" id="animation-event-group" name="animation-style">
+                    event group. Once it is complete, it will wait
+                    <input type="number" id="reset-delay" min="1" max="6000" value="60" style="width: 20%">
+                    seconds before restarting.
+                <input type="button"
+                       id="start-animation"
+                       value="Start Animation"></form></p>
             </div>
         </div>
 

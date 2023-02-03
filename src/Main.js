@@ -60,6 +60,16 @@ let pressOpenSettings = false;
 
 let settingsOpen = true;
 
+let interactive = true;
+let animationInterval;
+let animationMode;
+let animationResetInterval;
+
+let animationTimeout;
+
+let tieredTimeline;
+let timeline;
+
 const getTimeInYears = ({unit: unit, value: value}) => {
     switch (unit) {
         case "year":
@@ -69,7 +79,7 @@ const getTimeInYears = ({unit: unit, value: value}) => {
     }
 };
 
-const processCSVData = (csv, zip) => {
+const processCSVData = (csv) => {
     let events = [];
 
     Papa.parse(csv).data.slice(1).forEach(row => {
@@ -106,7 +116,7 @@ const processCSVData = (csv, zip) => {
 
         let ideals = Array(numGroups - 1).map((_, i) => minTime + i);
         ideals.push(maxTime);
-        ideals = ideals.map(i => Math.pow(10, i));
+        ideals = ideals.map(i => Math.pow(10, +i));
 
         reals = [];
         ideals.forEach(y => {
@@ -142,9 +152,6 @@ const processCSVData = (csv, zip) => {
 
     return reals;
 };
-
-let tieredTimeline;
-let timeline;
 
 const getSlicedData = () => {
     const dataCopy = JSON.parse(JSON.stringify(data)).slice(0, currentGroupIndex + 1);
@@ -189,32 +196,134 @@ const loadZip = async (zipContent) => {
     }
 };
 
+const startAnimation = (first) => {
+    if (currentGroupIndex + 1 === data.length && currentEventIndex + 1 === data[currentGroupIndex].events.length) {
+        reset();
+        animationTimeout = setTimeout(() => startAnimation(false), 1000 * animationInterval);
+        return;
+    }
+
+    if (!first && animationMode === "animation-event") {
+        nextEvent();
+    } else if (!first && animationMode === "animation-event-group") {
+        nextEventGroup();
+    }
+
+    clearTimeout(animationTimeout);
+    if (currentGroupIndex + 1 === data.length && currentEventIndex + 1 === data[currentGroupIndex].events.length) {
+        animationTimeout = setTimeout(() => startAnimation(false), 1000 * animationResetInterval);
+    } else {
+        animationTimeout = setTimeout(() => startAnimation(false), 1000 * animationInterval);
+    }
+};
+
 const setInputFunctions = () => {
     document.getElementById("datasetSubmit").onclick = async () => {
         const uploadedFile = document.getElementById("datasetUpload").files[0];
         const zipContent = await JSZip.loadAsync(uploadedFile);
 
-        loadZip(zipContent);
+        await loadZip(zipContent);
 
         document.getElementById("datasetUpload").value = null;
     };
+
+    document.getElementById("system-mode").onchange = () => {
+        interactive = document.getElementById("system-mode").value === "interactive"
+        if (interactive) {
+            document.getElementById("animation-options").style.display = "none";
+        } else {
+            document.getElementById("animation-options").style.display = "block";
+        }
+    };
+
+    document.getElementById("start-animation").onclick = () => {
+        animationInterval = +document.getElementById("interval").value;
+        animationMode = document.querySelector("input[type='radio'][name='animation-style']:checked").id;
+        animationResetInterval = +document.getElementById("reset-delay").value;
+
+        toggleSettings();
+
+        animationTimeout = startAnimation(true);
+    }
 };
+
+const nextEvent = () => {
+    if (currentEventIndex + 1 < data[currentGroupIndex].events.length) {
+        currentEventIndex += 1;
+
+        const dataCopy = getSlicedData();
+
+        tieredTimeline.nextTime(dataCopy[currentGroupIndex], false);
+        timeline.nextTime(data[currentGroupIndex]);
+    } else if (currentGroupIndex + 1 < data.length) {
+        currentGroupIndex += 1;
+        currentEventIndex = 0;
+
+        const dataCopy = getSlicedData();
+
+        tieredTimeline.nextTime(dataCopy[currentGroupIndex], true);
+        timeline.nextTime({ label: dataCopy[currentGroupIndex].label, time: dataCopy[currentGroupIndex].time });
+    }
+};
+
+const nextEventGroup = () => {
+    if (currentEventIndex + 1 < data[currentGroupIndex].events.length) {
+        currentEventIndex = data[currentGroupIndex].events.length - 1;
+
+        const dataCopy = getSlicedData();
+
+        tieredTimeline.nextTime(dataCopy[currentGroupIndex], false);
+        timeline.nextTime(data[currentGroupIndex]);
+    } else if (currentGroupIndex + 1 < data.length) {
+        currentGroupIndex += 1;
+        currentEventIndex = data[currentGroupIndex].events.length - 1;
+
+        const dataCopy = getSlicedData();
+
+        tieredTimeline.nextTime(dataCopy[currentGroupIndex], true);
+        timeline.nextTime({ label: dataCopy[currentGroupIndex].label, time: dataCopy[currentGroupIndex].time });
+    }
+};
+
+const reset = () => {
+    currentGroupIndex = 0;
+    currentEventIndex = 0;
+
+    const dataCopy = getSlicedData();
+
+    tieredTimeline.updateData(dataCopy);
+    timeline.updateData(
+        {
+            label: data[data.length - 1].label,
+            time: data[data.length - 1].time
+        },
+        {
+            label: data[0].label,
+            time: data[0].time
+        });
+};
+
+const toggleSettings = () => {
+    clearTimeout(animationTimeout);
+    settingsOpen = !settingsOpen;
+    document.getElementById("settings-instructions").style.display = settingsOpen ? "block" : "none";
+}
 
 const setButtonFunctions = () => {
     document.onkeydown = (event) => {
-        if (event.key === "ArrowRight" && !settingsOpen) {
+        if (event.key === "ArrowRight" && !settingsOpen && interactive) {
             pressNextEvent = true;
         }
 
-        if (event.key === "ArrowUp" && !settingsOpen) {
+        if (event.key === "ArrowUp" && !settingsOpen && interactive) {
             pressNextEventGroup = true;
         }
 
-        if (event.key === "r" && !settingsOpen) {
+        if (event.key === "r" && !settingsOpen && interactive) {
             pressResetDataset = true;
         }
 
-        if (event.key === "Escape" && tieredTimeline && tieredTimeline.ready) {
+        if (event.key === "Escape") {
             pressOpenSettings = true;
         }
     };
@@ -223,70 +332,25 @@ const setButtonFunctions = () => {
         if (event.key === "ArrowRight" && pressNextEvent && !settingsOpen) {
             pressNextEvent = false
 
-            if (currentEventIndex + 1 < data[currentGroupIndex].events.length) {
-                currentEventIndex += 1;
-
-                const dataCopy = getSlicedData();
-
-                tieredTimeline.nextTime(dataCopy[currentGroupIndex], false);
-                timeline.nextTime(data[currentGroupIndex]);
-            } else if (currentGroupIndex + 1 < data.length) {
-                currentGroupIndex += 1;
-                currentEventIndex = 0;
-
-                const dataCopy = getSlicedData();
-
-                tieredTimeline.nextTime(dataCopy[currentGroupIndex], true);
-                timeline.nextTime({ label: dataCopy[currentGroupIndex].label, time: dataCopy[currentGroupIndex].time });
-            }
+            nextEvent();
         }
 
         if (event.key === "ArrowUp" && pressNextEventGroup && !settingsOpen) {
             pressNextEventGroup = false;
 
-            if (currentEventIndex + 1 < data[currentGroupIndex].events.length) {
-                currentEventIndex = data[currentGroupIndex].events.length - 1;
-
-                const dataCopy = getSlicedData();
-
-                tieredTimeline.nextTime(dataCopy[currentGroupIndex], false);
-                timeline.nextTime(data[currentGroupIndex]);
-            } else if (currentGroupIndex + 1 < data.length) {
-                currentGroupIndex += 1;
-                currentEventIndex = data[currentGroupIndex].events.length - 1;
-
-                const dataCopy = getSlicedData();
-
-                tieredTimeline.nextTime(dataCopy[currentGroupIndex], true);
-                timeline.nextTime({ label: dataCopy[currentGroupIndex].label, time: dataCopy[currentGroupIndex].time });
-            }
+            nextEventGroup();
         }
 
         if (event.key === "r" && pressResetDataset && !settingsOpen) {
             pressNextEventGroup = false;
 
-            currentGroupIndex = 0;
-            currentEventIndex = 0;
-
-            const dataCopy = getSlicedData();
-
-            tieredTimeline.updateData(dataCopy);
-            timeline.updateData(
-                {
-                    label: data[data.length - 1].label,
-                    time: data[data.length - 1].time
-                },
-                {
-                    label: data[0].label,
-                    time: data[0].time
-                });
+            reset();
         }
 
         if (event.key === "Escape" && pressOpenSettings) {
             pressOpenSettings = false;
 
-            settingsOpen = !settingsOpen;
-            document.getElementById("settings-instructions").style.display = settingsOpen ? "block" : "none";
+            toggleSettings();
         }
     };
 };
@@ -302,6 +366,7 @@ const resizeStyles = (config) => {
     $(config.parentElement).css("padding", 6 * config.borderWidth * window.innerHeight + "px");
     $(config.parentElement).css("font-size", config.descriptionFontSize * window.innerHeight + "px");
     $(config.parentElement + " input").css("font-size", config.descriptionFontSize * window.innerHeight + "px");
+    $(config.parentElement + " select").css("font-size", config.descriptionFontSize * window.innerHeight + "px");
     $(config.parentElement + " h1").css("font-size", config.headerFontSize * window.innerHeight + "px");
     $(config.parentElement + " ul").css("padding-left", config.headerFontSize * window.innerHeight + "px");
     $(config.parentElement + " ol").css("padding-left", config.headerFontSize * window.innerHeight + "px");

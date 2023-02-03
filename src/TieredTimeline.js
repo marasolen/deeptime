@@ -13,8 +13,6 @@ class TieredTimeline {
         this.data = data;
         this.zipContent = zipContent;
 
-        this.ready = false;
-
         this.configureVis();
     }
 
@@ -67,8 +65,6 @@ class TieredTimeline {
     updateData(data, zipContent) {
         const vis = this;
 
-        vis.ready = false;
-
         if (vis.data) {
             vis.oldDataNum = vis.data.length;
         }
@@ -116,8 +112,6 @@ class TieredTimeline {
      */
     nextTime(data, archive) {
         const vis = this;
-
-        vis.ready = false;
 
         let existingEvents;
 
@@ -538,7 +532,5 @@ class TieredTimeline {
         }
 
         document.getElementById("media-focus").innerHTML = innerHTML;
-
-        vis.ready = true;
     }
 }
