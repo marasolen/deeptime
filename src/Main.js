@@ -113,10 +113,16 @@ const processCSVData = (csv) => {
         const minTime = Math.ceil(Math.log10(Math.min(...times)));
         const maxTime = Math.log10(Math.max(...times));
         const numGroups = Math.round(maxTime - minTime);
+        console.log(times, minTime, maxTime, numGroups);
 
-        let ideals = Array(numGroups - 1).map((_, i) => minTime + i);
+        let ideals = []
+        for (let i = 0; i < numGroups - 1; i++) {
+            ideals.push(minTime + i);
+        }
         ideals.push(maxTime);
         ideals = ideals.map(i => Math.pow(10, +i));
+
+        console.log(ideals);
 
         reals = [];
         ideals.forEach(y => {
@@ -133,7 +139,11 @@ const processCSVData = (csv) => {
             reals.push(bestEvent);
         });
 
+        console.log(reals);
+
         reals = [...new Set(reals)];
+
+        console.log(reals);
     }
 
     let lastEvent;
@@ -165,6 +175,9 @@ const getSlicedData = () => {
 };
 
 const loadZip = async (zipContent) => {
+    currentGroupIndex = 0;
+    currentEventIndex = 0;
+
     const eventData = await zipContent.files["events.csv"].async("text");
 
     data = processCSVData(eventData, zipContent);

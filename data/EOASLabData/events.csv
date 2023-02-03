@@ -1,36 +1,36 @@
-label,time/unit,time/value
-Jurassic Park Premieres,years,29
-Mount St. Helens Erupted,years,42
-Moon Landing,years,53
-UBC Founded,years,114
-Tambora Eruption,years,207
-Little Ice Age,years,500
-Ancient Egyptians,years,5170
-Domestication of Rice,years,9400
-Last Ice Age,years,20000
-Earliest Homo Sapiens,years,300000
-Earliest Hominins,years,7000000
-First Cats (Felidae),years,25000000
-Marine Mammals,years,30000000
-Formation of the Himalayas,years,50000000
-KT Extinction,years,65000000
-Formation of the Rocky Mountains,years,80000000
-Flowering Plants,years,140000000
-First Birds,years,150000000
-Opening of the Atlantic,years,180000000
-First Mammals,years,220000000
-P/T Extinction,years,250000000
-Burgess Shale,years,505000000
-Trilobites,years,515000000
-Early Vertebrates,years,525000000
-Snowball Earth,years,650000000
-First Sexual Reproduction,years,900000000
-Eukaryotes Appear,years,1800000000
-First Diatoms,years,2000000000
-Earliest Major Glaciations,years,2200000000
-Accumulation of Oxygen,years,2300000000
-BIFs,years,3000000000
-Stromatolites,years,3300000000
-Oldest Rock,years,4300000000
-Formation of the Moon,years,4450000000
-Formation of Earth,years,4500000000
+label,description,image,time/unit,time/value,anchor?
+Jurassic Park Premieres,,,years,29,FALSE
+Mount St. Helens Erupted,,,years,42,FALSE
+Moon Landing,,,years,53,FALSE
+UBC Founded,,,years,114,FALSE
+Tambora Eruption,,,years,207,FALSE
+Little Ice Age,,,years,500,FALSE
+Ancient Egyptians,,,years,5170,FALSE
+Domestication of Rice,,,years,9400,FALSE
+Last Ice Age,,,years,20000,FALSE
+Earliest Homo Sapiens,,,years,300000,FALSE
+Earliest Hominins,,,years,7000000,FALSE
+First Cats (Felidae),,,years,25000000,FALSE
+Marine Mammals,,,years,30000000,FALSE
+Formation of the Himalayas,,,years,50000000,FALSE
+KT Extinction,,,years,65000000,FALSE
+Formation of the Rocky Mountains,,,years,80000000,FALSE
+Flowering Plants,,,years,140000000,FALSE
+First Birds,,,years,150000000,FALSE
+Opening of the Atlantic,,,years,180000000,FALSE
+First Mammals,,,years,220000000,FALSE
+P/T Extinction,,,years,250000000,FALSE
+Burgess Shale,,,years,505000000,FALSE
+Trilobites,,,years,515000000,FALSE
+Early Vertebrates,,,years,525000000,FALSE
+Snowball Earth,,,years,650000000,FALSE
+First Sexual Reproduction,,,years,900000000,FALSE
+Eukaryotes Appear,,,years,1800000000,FALSE
+First Diatoms,,,years,2000000000,FALSE
+Earliest Major Glaciations,,,years,2200000000,FALSE
+Accumulation of Oxygen,,,years,2300000000,FALSE
+BIFs,,,years,3000000000,FALSE
+Stromatolites,,,years,3300000000,FALSE
+Oldest Rock,,,years,4300000000,FALSE
+Formation of the Moon,,,years,4450000000,FALSE
+Formation of Earth,,,years,4500000000,FALSE

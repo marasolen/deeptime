@@ -1,11 +1,11 @@
-label,time/unit,time/value
-Homo sapiens,years,300000
-Homo neanderthalenthsis,years,400000
-Homo heidelbergensis,years,800000
-Homo erectus,years,2000000
-Homo habilis,years,2100000
-Paranthropus boisei,years,2500000
-Australopithecus afarensis,years,3600000
-Australopithecus africanus,years,3600000
-Kenyanthropus platyops,years,4000000
-Sahelanthropus tchadensis,years,7000000
+label,description,image,timeunit,timevalue,anchor?
+Homo sapiens,,,years,300000,FALSE
+Homo neanderthalenthsis,,,years,400000,FALSE
+Homo heidelbergensis,,,years,800000,FALSE
+Homo erectus,,,years,2000000,FALSE
+Homo habilis,,,years,2100000,FALSE
+Paranthropus boisei,,,years,2500000,FALSE
+Australopithecus afarensis,,,years,3600000,FALSE
+Australopithecus africanus,,,years,3600000,FALSE
+Kenyanthropus platyops,,,years,4000000,FALSE
+Sahelanthropus tchadensis,,,years,7000000,FALSE
