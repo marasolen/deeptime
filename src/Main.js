@@ -29,21 +29,21 @@ const uploadBoxConfig = {
     parentElement: "#upload",
     borderWidth:         0.4 / 100,
     headerFontSize:      3.0 / 100,
-    descriptionFontSize: 1.8 / 100
+    descriptionFontSize: 1.6 / 100
 }
 
 const instructionsBoxConfig = {
     parentElement: "#instructions",
     borderWidth:         0.4 / 100,
     headerFontSize:      3.0 / 100,
-    descriptionFontSize: 1.8 / 100
+    descriptionFontSize: 1.6 / 100
 }
 
 const settingsBoxConfig = {
     parentElement: "#settings",
     borderWidth:         0.4 / 100,
     headerFontSize:      3.0 / 100,
-    descriptionFontSize: 1.8 / 100
+    descriptionFontSize: 1.6 / 100
 }
 
 const animationDuration = 2000;
@@ -267,7 +267,7 @@ const nextEvent = () => {
         const dataCopy = getSlicedData();
 
         tieredTimeline.nextTime(dataCopy[currentGroupIndex], false);
-        timeline.nextTime(data[currentGroupIndex]);
+        timeline.nextTime(dataCopy[currentGroupIndex]);
     } else if (currentGroupIndex + 1 < data.length) {
         currentGroupIndex += 1;
         currentEventIndex = 0;
