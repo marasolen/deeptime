@@ -201,10 +201,6 @@ class TieredTimeline {
         } else {
             d.segments = [{ start: 0, end: d.time }]
         }
-
-        d.events.forEach((e, j) => {
-            e.labelLevel = j % numLabelLevels;
-        });
     }
 
     /**
@@ -333,12 +329,41 @@ class TieredTimeline {
             .attr("stroke-opacity", 0.2);
 
         const archiveLineHeight = 1.5 / 100 * vis.height;
-        const archiveFontSize = 1.3 / 100 * vis.height;
+        const archiveFontSize =   1.3 / 100 * vis.height;
+        const archiveWWidth =     1.2 / 100 * vis.height;
 
         const expandingLineHeight = 4.5 / 100 * vis.height;
-        const expandingFontSize = 1.7 / 100 * vis.height;
+        const expandingFontSize =   1.7 / 100 * vis.height;
+        const expandingWWidth =     1.5 / 100 * vis.height;
+
 
         vis.data.forEach((d, j) => {
+            const rows = [[], [], [], []];
+            d.events.forEach(e => {
+                if (e.copy) {
+                    return;
+                }
+
+                const xPosition = d.xScale(e.time);
+                const width = archiveWWidth * e.label.length;
+                const leftBound = xPosition - width / 2;
+                const rightBound = xPosition + width / 2;
+                for (const row of rows) {
+                    if (!vis.checkCollision(row, leftBound, rightBound)) {
+                        row.push({ leftBound, rightBound });
+                        e.labelLevel = rows.indexOf(row);
+                        break;
+                    }
+                }
+
+                if (!e.labelLevel) {
+                    e.labelLevel = 0;
+                }
+            });
+
+            console.log(d.label);
+            console.log(rows);
+
             const nonCopyEvents = d.events.filter(d => !d.copy);
             const sliceValue = nonCopyEvents[nonCopyEvents.length - 1].label === d.label ? -1 : nonCopyEvents.length;
 
@@ -452,6 +477,29 @@ class TieredTimeline {
                 .join("text");
         }
 
+        const mainRows = [[], [], [], []];
+        vis.main.events.forEach(e => {
+            if (e.copy) {
+                return;
+            }
+
+            const xPosition = vis.main.xScale(e.time);
+            const width = expandingWWidth * Math.max(e.label.length, vis.numberFormatter(e.time).length + 6);
+            const leftBound = xPosition - width / 2;
+            const rightBound = xPosition + width / 2;
+            for (const row of mainRows) {
+                if (!vis.checkCollision(row, leftBound, rightBound)) {
+                    row.push({ leftBound, rightBound });
+                    e.labelLevel = mainRows.indexOf(row);
+                    break;
+                }
+            }
+
+            if (!e.labelLevel) {
+                e.labelLevel = 0;
+            }
+        });
+
         vis.chartExpandingLine.selectAll(".segments-main")
             .data(vis.main.segments)
             .join("line")
@@ -498,11 +546,15 @@ class TieredTimeline {
 
         vis.chartAnnotations.selectAll(".event-text-main")
             .data(vis.main.events)
-            .join("text")
-            .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize - expandingFontSize)
+            .join(
+                enter => {
+                    return enter.append("text")
+                        .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize - expandingFontSize);
+                })
             .style("font-size", expandingFontSize + "px")
             .transition()
             .duration(animationDuration)
+            .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize - expandingFontSize)
             .attr("x", e => vis.main.xScale(e.time))
             .attr("class", "event-text-main")
             .attr("opacity", e => (e.hidden || e.copy) ? 0 : 1)
@@ -511,11 +563,15 @@ class TieredTimeline {
 
         vis.chartAnnotations.selectAll(".event-years-main")
             .data(vis.main.events)
-            .join("text")
-            .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize)
+            .join(
+                enter => {
+                    return enter.append("text")
+                        .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize);
+                })
             .style("font-size", expandingFontSize + "px")
             .transition()
             .duration(animationDuration)
+            .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize)
             .attr("x", e => vis.main.xScale(e.time))
             .attr("class", "event-years-main")
             .attr("opacity", e => (e.hidden || e.copy) ? 0 : 1)
@@ -532,5 +588,21 @@ class TieredTimeline {
         }
 
         document.getElementById("media-focus").innerHTML = innerHTML;
+    }
+
+    checkCollision(row, left, right) {
+        let collision = false;
+
+        row.forEach(({ leftBound, rightBound }) => {
+            console.log(left, right);
+            if ((leftBound <= left       && rightBound >= left) ||
+                (leftBound <= right      && rightBound >= right) ||
+                (left      <= leftBound  && right      >= leftBound) ||
+                (left      <= rightBound && right      >= rightBound)) {
+                collision = true;
+            }
+        });
+
+        return collision;
     }
 }
