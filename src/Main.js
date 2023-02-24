@@ -1,51 +1,3 @@
-const timelineConfig = {
-    parentElement: "#simple-timeline",
-    margin: {
-        top:    0.0 / 100,
-        right:  5.0 / 100,
-        bottom: 0.0 / 100,
-        left:   5.0 / 100
-    }
-}
-
-const tieredTimelineConfig = {
-    parentElement: "#tiered-timeline",
-    margin: {
-        top:    16.3 / 100,
-        right:   5.0 / 100,
-        bottom:  1.8 / 100,
-        left:    5.0 / 100
-    }
-};
-
-const mediaBoxConfig = {
-    parentElement: "#media-focus",
-    borderWidth:         0.4 / 100,
-    headerFontSize:      2.0 / 100,
-    descriptionFontSize: 1.3 / 100
-}
-
-const uploadBoxConfig = {
-    parentElement: "#upload",
-    borderWidth:         0.4 / 100,
-    headerFontSize:      3.0 / 100,
-    descriptionFontSize: 1.6 / 100
-}
-
-const instructionsBoxConfig = {
-    parentElement: "#instructions",
-    borderWidth:         0.4 / 100,
-    headerFontSize:      3.0 / 100,
-    descriptionFontSize: 1.6 / 100
-}
-
-const settingsBoxConfig = {
-    parentElement: "#settings",
-    borderWidth:         0.4 / 100,
-    headerFontSize:      3.0 / 100,
-    descriptionFontSize: 1.6 / 100
-}
-
 const animationDuration = 2000;
 
 let data;
@@ -70,7 +22,10 @@ let animationTimeout;
 let tieredTimeline;
 let timeline;
 
-const getTimeInYears = ({unit: unit, value: value}) => {
+const errorMessage = "Error with provided Google Sheets ID. Check that it is a valid ID and that the" +
+    "Sheet is viewable by anyone with the link.";
+
+const getTimeInYears = (unit, value) => {
     switch (unit) {
         case "year":
             return (new Date()).getFullYear() - value;
@@ -79,27 +34,27 @@ const getTimeInYears = ({unit: unit, value: value}) => {
     }
 };
 
-const processCSVData = (csv) => {
-    let events = [];
+const processData = async (sheetsId) => {
+    const parser = new PublicGoogleSheetsParser();
 
-    Papa.parse(csv).data.slice(1).forEach(row => {
-        if (row.length === 6) {
-            events.push({
-                label: row[0],
-                description: row[1],
-                image: row[2],
-                time: {
-                    unit: row[3],
-                    value: +row[4]
-                },
-                anchor: row[5] === "TRUE"
-            });
-        }
-    })
-
-    events.forEach(e => {
-        e.time = getTimeInYears(e.time);
+    let events;
+    await parser.parse(sheetsId).then(temporaryData => {
+        temporaryData.forEach(d => {
+            d.time = getTimeInYears(d.timeunit, +d.timevalue);
+            d.anchor = d["anchor?"];
+        });
+        events = temporaryData;
+    }).catch(error => {
+        console.log(error);
+        $("#upload-status").text(errorMessage);
     });
+
+    if (!events || events.length === 0) {
+        $("#upload-status").text(errorMessage);
+        return null;
+    }
+
+    $("#upload-status").text("");
 
     events = events.sort((a, b) => {
         return a.time - b.time;
@@ -113,7 +68,6 @@ const processCSVData = (csv) => {
         const minTime = Math.ceil(Math.log10(Math.min(...times)));
         const maxTime = Math.log10(Math.max(...times));
         const numGroups = Math.round(maxTime - minTime);
-        console.log(times, minTime, maxTime, numGroups);
 
         let ideals = []
         for (let i = 0; i < numGroups - 1; i++) {
@@ -121,8 +75,6 @@ const processCSVData = (csv) => {
         }
         ideals.push(maxTime);
         ideals = ideals.map(i => Math.pow(10, +i));
-
-        console.log(ideals);
 
         reals = [];
         ideals.forEach(y => {
@@ -139,11 +91,7 @@ const processCSVData = (csv) => {
             reals.push(bestEvent);
         });
 
-        console.log(reals);
-
         reals = [...new Set(reals)];
-
-        console.log(reals);
     }
 
     let lastEvent;
@@ -156,9 +104,14 @@ const processCSVData = (csv) => {
                 subEvents.push(JSON.parse(JSON.stringify(d)));
             }
         });
+        e.eventgroupname = !e.eventgroupname ? e.label : e.eventgroupname;
         e.events = subEvents;
         lastEvent = e;
     });
+
+    let url = new URL(window.location.href);
+    url.searchParams.set('id', sheetsId);
+    window.history.pushState("string", "Title", url.href);
 
     return reals;
 };
@@ -172,41 +125,6 @@ const getSlicedData = () => {
     dataCopy[currentGroupIndex].image = dataCopy[currentGroupIndex].events[currentEventIndex].image;
 
     return dataCopy;
-};
-
-const loadZip = async (zipContent) => {
-    currentGroupIndex = 0;
-    currentEventIndex = 0;
-
-    const eventData = await zipContent.files["events.csv"].async("text");
-
-    data = processCSVData(eventData, zipContent);
-
-    const dataCopy = getSlicedData();
-
-    if (tieredTimeline) {
-        tieredTimeline.updateData(dataCopy, zipContent);
-        timeline.updateData(
-            {
-                label: data[data.length - 1].label,
-                time: data[data.length - 1].time
-            },
-            {
-                label: data[0].label,
-                time: data[0].time
-            });
-    } else {
-        tieredTimeline = new TieredTimeline(tieredTimelineConfig, dataCopy, zipContent);
-        timeline = new Timeline(timelineConfig,
-            {
-                label: data[data.length - 1].label,
-                time: data[data.length - 1].time
-            },
-            {
-                label: data[0].label,
-                time: data[0].time
-            });
-    }
 };
 
 const startAnimation = (first) => {
@@ -232,12 +150,12 @@ const startAnimation = (first) => {
 
 const setInputFunctions = () => {
     document.getElementById("datasetSubmit").onclick = async () => {
-        const uploadedFile = document.getElementById("datasetUpload").files[0];
-        const zipContent = await JSZip.loadAsync(uploadedFile);
+        const sheetsId = document.getElementById("datasetUpload").value;
 
-        await loadZip(zipContent);
+        const tempData = await processData(sheetsId);
+        data = tempData ? tempData : data;
 
-        document.getElementById("datasetUpload").value = null;
+        reset();
     };
 
     document.getElementById("system-mode").onchange = () => {
@@ -277,6 +195,11 @@ const nextEvent = () => {
         tieredTimeline.nextTime(dataCopy[currentGroupIndex], true);
         timeline.nextTime({ label: dataCopy[currentGroupIndex].label, time: dataCopy[currentGroupIndex].time });
     }
+
+    let url = new URL(window.location.href);
+    url.searchParams.set("gIndex", currentGroupIndex);
+    url.searchParams.set("eIndex", currentEventIndex);
+    window.history.pushState("string", "Title", url.href);
 };
 
 const nextEventGroup = () => {
@@ -296,11 +219,21 @@ const nextEventGroup = () => {
         tieredTimeline.nextTime(dataCopy[currentGroupIndex], true);
         timeline.nextTime({ label: dataCopy[currentGroupIndex].label, time: dataCopy[currentGroupIndex].time });
     }
+
+    let url = new URL(window.location.href);
+    url.searchParams.set("gIndex", currentGroupIndex);
+    url.searchParams.set("eIndex", currentEventIndex);
+    window.history.pushState("string", "Title", url.href);
 };
 
 const reset = () => {
     currentGroupIndex = 0;
     currentEventIndex = 0;
+
+    let url = new URL(window.location.href);
+    url.searchParams.set("gIndex", currentGroupIndex);
+    url.searchParams.set("eIndex", currentEventIndex);
+    window.history.pushState("string", "Title", url.href);
 
     const dataCopy = getSlicedData();
 
@@ -406,9 +339,52 @@ window.addEventListener('load', async () => {
 
     setContainerSizes();
 
-    fetch(window.location.href + "/data/EOASLabAndHomininHallData/EOASLabAndHomininHallData.zip")
-        .then(res => res.blob())
-        .then(async blob => loadZip(await JSZip.loadAsync(blob)));
+    let url = new URL(window.location.href);
+    let existingId;
+    if (url.searchParams.has("id")) {
+        existingId = url.searchParams.get("id");
+    }
+
+    const sheetsId = existingId ? existingId : "1WTxwt7RjEiNdJqSu6U2L1_CGpbsOwgUYQT3VyrdDoaI";
+
+    const tempData = await processData(sheetsId);
+    if (!tempData) {
+        return;
+    }
+    data = tempData;
+
+    url = new URL(window.location.href);
+
+    if (url.searchParams.has("gIndex")) {
+        currentGroupIndex = +url.searchParams.get("gIndex");
+        if (currentGroupIndex >= data.length) {
+            currentGroupIndex = data.length - 1;
+        }
+    }
+
+    if (url.searchParams.has("eIndex")) {
+        currentEventIndex = +url.searchParams.get("eIndex");
+        if (currentEventIndex >= data[currentGroupIndex].events.length) {
+            currentEventIndex = data[currentGroupIndex].events.length - 1;
+        }
+    }
+
+    url.searchParams.set("gIndex", currentGroupIndex);
+    url.searchParams.set("eIndex", currentEventIndex);
+    window.history.pushState("string", "Title", url.href);
+
+    const dataCopy = getSlicedData();
+
+    tieredTimeline = new TieredTimeline(tieredTimelineConfig, dataCopy);
+    timeline = new Timeline(timelineConfig,
+        {
+            label: data[data.length - 1].label,
+            time: data[data.length - 1].time
+        },
+        {
+            label: data[0].label,
+            time: data[0].time
+        });
 });
 
 window.addEventListener('resize', () => {

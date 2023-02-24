@@ -1,4 +1,5 @@
-const numLabelLevels = 4;
+const numMainLabelLevels = 4;
+const numArchiveLabelLevels = 3;
 const numAreaExtensions = 5;
 
 class TieredTimeline {
@@ -8,10 +9,9 @@ class TieredTimeline {
      * @param config - object, information on visualization size and margins
      * @param data - object, unprocessed data
      */
-    constructor(config, data, zipContent) {
+    constructor(config, data) {
         this.config = config;
         this.data = data;
-        this.zipContent = zipContent;
 
         this.configureVis();
     }
@@ -330,15 +330,15 @@ class TieredTimeline {
 
         const archiveLineHeight = 1.5 / 100 * vis.height;
         const archiveFontSize =   1.3 / 100 * vis.height;
-        const archiveWWidth =     1.2 / 100 * vis.height;
+        const archiveWWidth =     1.1 / 100 * vis.height;
 
         const expandingLineHeight = 4.5 / 100 * vis.height;
         const expandingFontSize =   1.7 / 100 * vis.height;
-        const expandingWWidth =     1.5 / 100 * vis.height;
+        const expandingWWidth =     1.3 / 100 * vis.height;
 
 
         vis.data.forEach((d, j) => {
-            const rows = [[], [], [], []];
+            const rows = Array.from(Array(numArchiveLabelLevels)).map(_ => []);
             d.events.forEach(e => {
                 if (e.copy) {
                     return;
@@ -361,11 +361,8 @@ class TieredTimeline {
                 }
             });
 
-            console.log(d.label);
-            console.log(rows);
-
             const nonCopyEvents = d.events.filter(d => !d.copy);
-            const sliceValue = nonCopyEvents[nonCopyEvents.length - 1].label === d.label ? -1 : nonCopyEvents.length;
+            const sliceValue = d.eventgroupname === d.label ? -1 : nonCopyEvents.length;
 
             vis.chartStandardLines.selectAll(".segments-" + j)
                 .data(d.segments)
@@ -390,7 +387,7 @@ class TieredTimeline {
                 .attr("x1", e => d.xScale(e.time))
                 .attr("y1", _ => vis.yScale(d.time))
                 .attr("x2", e => d.xScale(e.time))
-                .attr("y2", e => vis.yScale(d.time) - (e.labelLevel + 0.8) * 1 * archiveFontSize)
+                .attr("y2", e => vis.yScale(d.time) - (e.labelLevel + 2) * 1 * archiveFontSize)
                 .style("stroke", "black")
                 .attr("stroke-width", connectorLineWidth)
                 .attr("stroke-opacity", _ => j === vis.data.length - 1 ? 0 : 0.2);
@@ -418,7 +415,7 @@ class TieredTimeline {
                 .duration(animationDuration)
                 .attr("class", "event-text-" + j)
                 .attr("x", e => d.xScale(e.time))
-                .attr("y", e => vis.yScale(d.time) - (e.labelLevel + 1) * 1.1 * archiveFontSize)
+                .attr("y", e => vis.yScale(d.time) - (e.labelLevel + 2) * 1.1 * archiveFontSize)
                 .attr("opacity", _ => j === vis.data.length - 1 ? 0 : 1)
                 .style('text-anchor', 'middle')
                 .style("font-size", archiveFontSize + "px")
@@ -435,7 +432,7 @@ class TieredTimeline {
                 .attr("opacity", _ => j === vis.data.length - 1 ? 0 : 1)
                 .style('text-anchor', 'end')
                 .style("font-size", expandingFontSize + "px")
-                .text(e => e.label);
+                .text(e => e.eventgroupname);
 
             vis.chartAnnotations.selectAll(".event-group-time-" + j)
                 .data([d])
@@ -477,9 +474,10 @@ class TieredTimeline {
                 .join("text");
         }
 
-        const mainRows = [[], [], [], []];
+        const mainRows = Array.from(Array(numArchiveLabelLevels)).map(_ => []);
         vis.main.events.forEach(e => {
             if (e.copy) {
+                e.labelLevel = 0;
                 return;
             }
 
@@ -582,9 +580,8 @@ class TieredTimeline {
         innerHTML += `<h1 id=\"media-title\">${vis.main.label}</h1>`;
         innerHTML += `<p id=\"media-description\">${vis.main.description ? vis.main.description : "A description of " + vis.main.label + "."}</p>`;
 
-        if (vis.main.image && vis.zipContent) {
-            const content = await vis.zipContent.files["images/" + vis.main.image].async("base64");
-            innerHTML += `<img id="media-image" src="${"data:;base64," + content}">`;
+        if (vis.main.image) {
+            innerHTML += `<img id="media-image" src="${vis.main.image}">`;
         }
 
         document.getElementById("media-focus").innerHTML = innerHTML;
@@ -594,7 +591,6 @@ class TieredTimeline {
         let collision = false;
 
         row.forEach(({ leftBound, rightBound }) => {
-            console.log(left, right);
             if ((leftBound <= left       && rightBound >= left) ||
                 (leftBound <= right      && rightBound >= right) ||
                 (left      <= leftBound  && right      >= leftBound) ||
