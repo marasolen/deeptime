@@ -3,7 +3,7 @@
     <head>
         <title>Visualizing Deep Time</title>
         <meta charset="UTF-8">
-        <link rel="icon" href="TODO" />
+        <link rel="icon" href="icon.jpg" />
         <link rel="stylesheet" href="css/styles.css">
 
         <!-- Font -->
@@ -16,35 +16,36 @@
         <div id="settings-instructions">
             <div id="upload">
                 <h1>Upload Data</h1>
-                <p>A sample dataset is provided. If you would like to upload your dataset, please upload a zip file
-                    containing:</p>
-                <ul>
-                    <li>A CSV (comma separated values) file called "events.csv" with the event data. This CSV file
-                        should have 6 columns:
-                        <ol>
-                            <li>label: the label to use for the event</li>
-                            <li>description: the description of the event</li>
-                            <li>image: the name of the image file of the event</li>
-                            <li>timeunit: the unit of time of the event, one of: "years" (years ago), "year" (year
-                                number), "months", "days"</li>
-                            <li>timevalue: the value of the time of the event</li>
-                            <li>anchor?: true or false, determines whether the event is an event group delimiter</li>
-                        </ol>
-                        If every row in the anchor? column is false, the system will automatically choose event group
-                        delimiters to be approximately multiples of 10.
-                    </li>
-                    <br>
-                    <li>A folder called "images" with the images used in the event data.</li>
-                </ul>
-                <p>You may download the sample data in this format <a href="data/EOASLabAndHomininHallData/EOASLabAndHomininHallData.zip" download>here</a> as an
-                    example. Submit your zipped dataset here:</p>
-                <input type="file"
+                <p>A sample dataset is provided below. If you would like to use your own dataset, please format it as a Google
+                    Sheet containing the following columns:</p>
+                <ol>
+                    <li>label: the label to use for the event</li>
+                    <li>description: the description of the event</li>
+                    <li>image: a link to a hosted image of the event</li>
+                    <li>timeunit: the unit of time of the event, one of: "years" (years ago), "year" (year
+                        number), "months", "days"</li>
+                    <li>timevalue: the value of the time of the event</li>
+                    <li>anchor?: true or false, determines whether the event is an event group delimiter</li>
+                    <li>eventgroupname: if a row's anchor? is true, this column can optionally contain a name for the
+                    event group</li>
+                </ol>
+                <p>If every row in the anchor? column is false, the system will automatically choose event group
+                delimiters to be approximately multiples of 10.</p>
+                <p>You may view the sample data in this format
+                    <a href="https://docs.google.com/spreadsheets/d/1WTxwt7RjEiNdJqSu6U2L1_CGpbsOwgUYQT3VyrdDoaI/edit#gid=0">here</a>
+                    as an example. First, ensure that your Google Sheet is viewable by anyone with the link. Then, get
+                    the ID of the Sheet. The ID is the part of the link after "/d/" and before the following "/", for
+                    example the ID of the sample dataset is "1WTxwt7RjEiNdJqSu6U2L1_CGpbsOwgUYQT3VyrdDoaI". Enter the ID
+                    of your Sheet here:
+                </p>
+                <input type="text"
                        id="datasetUpload"
                        name="datasetUpload"
-                       accept=".zip">
+                       style="width:70%">
                 <input type="button"
                        id="datasetSubmit"
                        value="Submit Dataset">
+                <p id="upload-status" style="color: red"></p>
             </div>
             <div id="instructions">
                 <h1>Instructions for Use</h1>
@@ -88,9 +89,10 @@
         <script src="src/libraries/d3.v7.min.js"></script>
         <script src="src/libraries/jquery-3.6.3.min.js"></script>
         <script src="src/libraries/jszip.min.js"></script>
-        <script src="src/libraries/papaparse.min.js"></script>
+        <script src="src/libraries/public-google-sheets-parser.js"></script>
 
         <!-- Source Code -->
+        <script src="src/Config.js" typ="text/javascript"></script>
         <script src="src/Timeline.js" type="text/javascript"></script>
         <script src="src/TieredTimeline.js" type="text/javascript"></script>
         <script src="src/Main.js" type="text/javascript"></script>
