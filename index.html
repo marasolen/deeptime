@@ -16,7 +16,7 @@
         <div id="settings-instructions">
             <div id="upload">
                 <h1>Upload Data</h1>
-                <p>A sample dataset is provided below. If you would like to use your own dataset, please format it as a Google
+                <p>A sample dataset is already in use. If you would like to use your own dataset, please format it as a Google
                     Sheet containing the following columns:</p>
                 <ol>
                     <li>label: the label to use for the event</li>
@@ -53,6 +53,10 @@
                 <p>To continue to the next event group, press the up arrow key.</p>
                 <p>To reset the system to the initial state, press the R key.</p>
                 <p>To open or close this menu, press the Escape key.</p>
+                <p>Click this button to toggle whether this menu should show up on start up.<br><input type="button"
+                       id="no-menu-link"
+                       value="Toggle Menu on Start Up"></form></p>
+                <p id="menu-toggle-status">Current status: will not show</p>
             </div>
             <div id="settings">
                 <h1>Settings</h1>
@@ -61,7 +65,8 @@
                     <option value="interactive">Interactive</option>
                     <option value="animated">Animated</option>
                 </select>
-                <p><form id="animation-options" style="display: none">Every <input type="number" id="interval" min="1" max="6000" value="60" style="width: 20%">
+                <p><form id="animation-options" style="display: none">Every
+                    <input type="number" id="interval" min="1" max="6000" value="60" style="width: 20%">
                     seconds, the system will continue to the next
                     <input type="radio" id="animation-event" name="animation-style" checked="checked">
                     event /
