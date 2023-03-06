@@ -13,9 +13,9 @@ let pressOpenSettings = false;
 let settingsOpen = true;
 
 let interactive = true;
-let animationInterval;
-let animationMode;
-let animationResetInterval;
+let animationInterval = 60;
+let animationMode = "animation-event";
+let animationResetInterval = 60;
 
 let animationTimeout;
 
@@ -159,12 +159,19 @@ const setInputFunctions = () => {
     };
 
     document.getElementById("system-mode").onchange = () => {
+        const url = new URL(window.location.href);
         interactive = document.getElementById("system-mode").value === "interactive"
         if (interactive) {
+            url.searchParams.set("mode", "i");
             document.getElementById("animation-options").style.display = "none";
         } else {
+            url.searchParams.set("mode", "a");
+            url.searchParams.set("interval", animationInterval);
+            url.searchParams.set("animMode", animationMode);
+            url.searchParams.set("resetInterval", animationResetInterval);
             document.getElementById("animation-options").style.display = "block";
         }
+        window.history.pushState("string", "Title", url.href);
     };
 
     document.getElementById("start-animation").onclick = () => {
@@ -172,10 +179,23 @@ const setInputFunctions = () => {
         animationMode = document.querySelector("input[type='radio'][name='animation-style']:checked").id;
         animationResetInterval = +document.getElementById("reset-delay").value;
 
+        const url = new URL(window.location.href);
+        url.searchParams.set("interval", animationInterval);
+        url.searchParams.set("animMode", animationMode);
+        url.searchParams.set("resetInterval", animationResetInterval);
+        window.history.pushState("string", "Title", url.href);
+
         toggleSettings();
 
         animationTimeout = startAnimation(true);
-    }
+    };
+
+    document.getElementById("no-menu-link").onclick = async () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set("noMenu", url.searchParams.get("noMenu") === "true" ? "false" : "true");
+        window.history.pushState("string", "Title", url.href);
+        $("#menu-toggle-status").text("Current status: " + (url.searchParams.get("noMenu") === "true" ? "will not show" : "will show"));
+    };
 };
 
 const nextEvent = () => {
@@ -368,6 +388,56 @@ window.addEventListener('load', async () => {
             currentEventIndex = data[currentGroupIndex].events.length - 1;
         }
     }
+
+    if (url.searchParams.has("mode")) {
+        interactive = url.searchParams.get("mode") === "i";
+    } else {
+        url.searchParams.set("mode", "i");
+    }
+
+    if (interactive) {
+        $("#system-mode").val("interactive").change();
+        document.getElementById("animation-options").style.display = "none";
+    } else {
+        $("#system-mode").val("animated").change();
+        document.getElementById("animation-options").style.display = "block";
+    }
+
+    if (url.searchParams.has("interval")) {
+        animationInterval = +url.searchParams.get("interval");
+    } else {
+        url.searchParams.set("interval", animationInterval);
+    }
+
+    if (url.searchParams.has("animMode")) {
+        animationMode = url.searchParams.get("animMode");
+    } else {
+        url.searchParams.set("animMode", animationMode);
+    }
+
+    if (url.searchParams.has("resetInterval")) {
+        animationResetInterval = +url.searchParams.get("resetInterval");
+    } else {
+        url.searchParams.set("resetInterval", animationResetInterval);
+    }
+
+    if (url.searchParams.has("noMenu")) {
+        if (url.searchParams.get("noMenu") === "true") {
+            toggleSettings();
+        }
+    } else {
+        url.searchParams.set("noMenu", "false");
+    }
+    
+    $("#menu-toggle-status").text("Current status: " + (url.searchParams.get("noMenu") === "true" ? "will not show" : "will show"));
+
+    $("#interval").val(animationInterval).change();
+    $("#reset-delay").val(animationResetInterval).change();
+
+    const radios = $('input:radio[name=animation-style]');
+    ["animation-event", "animation-event-group"].forEach(style => {
+        radios.filter('[id=' + style + ']').prop("checked", animationMode === style);
+    })
 
     url.searchParams.set("gIndex", currentGroupIndex);
     url.searchParams.set("eIndex", currentEventIndex);
