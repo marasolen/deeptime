@@ -319,6 +319,10 @@ const setButtonFunctions = () => {
             toggleSettings();
         }
     };
+
+    document.getElementById("reset-button").onclick = reset;
+    document.getElementById("next-button").onclick = nextEvent;
+    document.getElementById("next-group-button").onclick = nextEventGroup;
 };
 
 const setContainerSize = (config) => {
@@ -346,11 +350,14 @@ const setContainerSizes = () => {
     setContainerSize(instructionsBoxConfig);
     setContainerSize(settingsBoxConfig);
 
-    $("#separator").css("border-width", mediaBoxConfig.borderWidth * mediaBoxConfig.containerWidth + "px");
+    $("#separator").css("border-width", mediaBoxConfig.borderWidth * window.innerHeight + "px");
     resizeStyles(mediaBoxConfig);
     resizeStyles(uploadBoxConfig);
     resizeStyles(instructionsBoxConfig);
     resizeStyles(settingsBoxConfig);
+
+    $(".interface-button").css("font-size", mediaBoxConfig.headerFontSize * window.innerHeight + "px");
+    $(".interface-button").css("border-radius", 2 * mediaBoxConfig.borderWidth * window.innerHeight + "px");
 };
 
 window.addEventListener('load', async () => {
@@ -428,7 +435,7 @@ window.addEventListener('load', async () => {
     } else {
         url.searchParams.set("noMenu", "false");
     }
-    
+
     $("#menu-toggle-status").text("Current status: " + (url.searchParams.get("noMenu") === "true" ? "will not show" : "will show"));
 
     $("#interval").val(animationInterval).change();

@@ -97,9 +97,9 @@ body {
     position: absolute;
 
     width: 30%;
-    height: 45%;
+    height: 40%;
 
-    top: 40%;
+    top: 33%;
     left: 5%;
 
     align-content: center;
@@ -109,6 +109,48 @@ body {
 }
 
 #media-image {
-    max-height: 50%;
+    min-height: 20%;
+    max-height: 40%;
+
+    min-width: 20%;
     max-width: 90%;
+}
+
+#reset-button {
+    position: absolute;
+
+    width: 9%;
+    height: 12%;
+
+    top: 85%;
+    left: 5.5%;
+}
+
+#next-button {
+    position: absolute;
+
+    width: 9%;
+    height: 12%;
+
+    top: 85%;
+    left: 16.75%;
+}
+
+#next-group-button {
+    position: absolute;
+
+    width: 9%;
+    height: 12%;
+
+    top: 85%;
+    left: 28%;
+}
+
+.interface-button {
+    background-color: #dddddd;
+    border: none;
+}
+
+.interface-button:hover {
+    background-color: #cccccc;
 }
