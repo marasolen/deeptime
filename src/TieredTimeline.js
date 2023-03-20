@@ -387,7 +387,7 @@ class TieredTimeline {
                 .attr("x1", e => d.xScale(e.time))
                 .attr("y1", _ => vis.yScale(d.time))
                 .attr("x2", e => d.xScale(e.time))
-                .attr("y2", e => vis.yScale(d.time) - (e.labelLevel + 2) * 1 * archiveFontSize)
+                .attr("y2", e => vis.yScale(d.time) - (e.labelLevel + 1.5) * 1 * archiveFontSize)
                 .style("stroke", "black")
                 .attr("stroke-width", connectorLineWidth)
                 .attr("stroke-opacity", _ => j === vis.data.length - 1 ? 0 : 0.2);
@@ -415,7 +415,7 @@ class TieredTimeline {
                 .duration(animationDuration)
                 .attr("class", "event-text-" + j)
                 .attr("x", e => d.xScale(e.time))
-                .attr("y", e => vis.yScale(d.time) - (e.labelLevel + 2) * 1.1 * archiveFontSize)
+                .attr("y", e => vis.yScale(d.time) - (e.labelLevel + 1.5) * 1.1 * archiveFontSize)
                 .attr("opacity", _ => j === vis.data.length - 1 ? 0 : 1)
                 .style('text-anchor', 'middle')
                 .style("font-size", archiveFontSize + "px")
