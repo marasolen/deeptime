@@ -166,6 +166,9 @@ const setContainerSizes = () => {
 };
 
 window.addEventListener('load', async () => {
+    const absorbEvent = event => event.preventDefault()
+    document.addEventListener('contextmenu', absorbEvent);
+
     setInputFunctions();
     setButtonFunctions();
     setContainerSizes();
