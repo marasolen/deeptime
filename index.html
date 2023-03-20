@@ -46,6 +46,16 @@
                        id="datasetSubmit"
                        value="Submit Dataset">
                 <p id="upload-status" style="color: red"></p>
+                <p>Click this button to toggle whether trace data should be tracked and stored on this machine.<br>
+                    <input type="button"
+                       id="log-data"
+                       value="Toggle Log Trace Data"></form></p>
+                <p id="log-data-toggle-status">Current status: will not log</p>
+                <p id="trace-options" style="display: none">
+                    The trace data will be logged every
+                    <input type="number" id="log-data-interval" min="1" max="60000" value="3600" style="width: 20%">
+                    seconds.
+                </p>
             </div>
             <div id="instructions">
                 <h1>Instructions for Use</h1>
@@ -53,7 +63,8 @@
                 <p>To continue to the next event group, press the up arrow key.</p>
                 <p>To reset the system to the initial state, press the R key.</p>
                 <p>To open or close this menu, press the Escape key.</p>
-                <p>Click this button to toggle whether this menu should show up on start up.<br><input type="button"
+                <p>Click this button to toggle whether this menu should show up on start up.<br>
+                    <input type="button"
                        id="no-menu-link"
                        value="Toggle Menu on Start Up"></form></p>
                 <p id="menu-toggle-status">Current status: will not show</p>

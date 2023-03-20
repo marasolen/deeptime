@@ -11,6 +11,9 @@ let animationResetInterval = 240;
 
 let noMenu = false;
 
+let shouldLogEvents = false;
+let logInterval = 3600;
+
 const loadURLSetting = (url, parameter, defaultValue) => {
     if (url.searchParams.has(parameter)) {
         return url.searchParams.get(parameter);
@@ -37,7 +40,7 @@ const loadURLSettings = async (processData) => {
         url.searchParams.set("gIndex", currentGroupIndex);
     }
 
-    currentEventIndex = loadURLSetting(url, "eIndex", currentEventIndex);
+    currentEventIndex = +loadURLSetting(url, "eIndex", currentEventIndex);
     if (currentEventIndex >= data[currentGroupIndex].events.length) {
         currentEventIndex = data[currentGroupIndex].events.length - 1;
         url.searchParams.set("eIndex", currentEventIndex);
@@ -82,6 +85,15 @@ const loadURLSettings = async (processData) => {
         $('input:radio[name=animation-style]').filter('[id=' + style + ']').prop("checked", animationMode === style);
     })
 
+    shouldLogEvents = loadURLSetting(url, "logEvents", "false") === "true";
+    $("#log-data-toggle-status").text("Current status: " + (shouldLogEvents ? "will log" : "will not log"));
+    if (shouldLogEvents) {
+        document.getElementById("trace-options").style.display = "block";
+    }
+
+    logInterval = +loadURLSetting(url, "logInterval", logInterval);
+    $("#log-data-interval").val(logInterval).change();
+
     window.history.pushState("string", "Title", url.href);
 
     return data;
@@ -99,6 +111,8 @@ const updateURL = () => {
     url.searchParams.set("animMode", animationMode);
     url.searchParams.set("resetInterval", animationResetInterval);
     url.searchParams.set("noMenu", noMenu);
+    url.searchParams.set("logEvents", shouldLogEvents);
+    url.searchParams.set("logInterval", logInterval);
 
     window.history.pushState("string", "Title", url.href);
 };

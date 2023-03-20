@@ -19,6 +19,27 @@ const setInputFunctions = () => {
         $("#menu-toggle-status").text("Current status: " + (noMenu ? "will not show" : "will show"));
     };
 
+    document.getElementById("log-data").onclick = async () => {
+        shouldLogEvents = !shouldLogEvents;
+        updateURL();
+        $("#log-data-toggle-status").text("Current status: " + (shouldLogEvents ? "will log" : "will not log"));
+
+        if (shouldLogEvents) {
+            document.getElementById("trace-options").style.display = "block";
+            startDownloadTimeout();
+        } else {
+            document.getElementById("trace-options").style.display = "none";
+            logEvents = [];
+            clearTimeout(logDownloadTimeout);
+        }
+    };
+
+    $('#log-data-interval').on("change", () => {
+        logInterval = $("#log-data-interval").val();
+        updateURL();
+        downloadLogs();
+    });
+
     document.getElementById("system-mode").onchange = () => {
         interactionMode = document.getElementById("system-mode").value;
         if (interactionMode === "interactive") {
@@ -179,6 +200,10 @@ window.addEventListener('load', async () => {
         data = tempData;
     } else {
         return;
+    }
+
+    if (shouldLogEvents) {
+        startDownloadTimeout();
     }
 
     const dataCopy = getSlicedData();
