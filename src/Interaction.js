@@ -9,23 +9,66 @@ let animationTimeout;
 
 let dynamicTimeout;
 
-const pingServer = (event) => {
-    let xhr = new XMLHttpRequest();
-    xhr.open("POST", "http://127.0.0.1:5000/");
-    xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
-    xhr.send(JSON.stringify({ datetime: (new Date()).toISOString(), event: event}));
+let logDownloadTimeout;
+let logEvents = [];
+let lastLogDownload = new Date();
 
-    console.log(event);
-    xhr.onreadystatechange = (e) => {
-        console.log(xhr.readyState);
-        if (xhr.readyState === 4) {
-            console.log("Server responded");
+const downloadLogs = () => {
+    clearTimeout(logDownloadTimeout);
+
+    if (logEvents.length > 0) {
+        const logDate = new Date();
+
+        const element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' +
+            encodeURIComponent(JSON.stringify({
+                start: lastLogDownload.toISOString(),
+                end: logDate.toISOString(),
+                data: logEvents
+            })));
+
+        const fileName = "log-data_" +
+            lastLogDownload.toISOString()
+                .replaceAll(" ", "")
+                .replaceAll(":", "-") +
+            "---" +
+            logDate.toISOString()
+                .replaceAll(" ", "")
+                .replaceAll(":", "-") +
+            ".json";
+
+        element.setAttribute('download', fileName);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+
+        lastLogDownload = logDate;
+        logEvents = [];
+    }
+
+    startDownloadTimeout();
+};
+
+const startDownloadTimeout = () => {
+    logDownloadTimeout = setTimeout(downloadLogs, 1000 * logInterval);
+};
+
+const storeEvent = (event) => {
+    if (shouldLogEvents) {
+        logEvents.push({ datetime: (new Date()).toISOString(), event: event});
+
+        if (logEvents.length >= 1000) {
+            downloadLogs();
         }
-    };
+    }
 };
 
 const interactionHandler = (event) => {
-    pingServer(event);
+    storeEvent(event);
     if (interactionMode === "dynamic") {
         clearTimeout(dynamicTimeout);
         clearTimeout(animationTimeout);
@@ -132,7 +175,7 @@ const startAnimation = (first) => {
 
 const initializeDynamicAnimation = () => {
     dynamicTimeout = setTimeout(() => {
-        pingServer("automatic animation beginning");
+        storeEvent("automatic animation beginning");
         startAnimation(true);
     }, 1000 * dynamicWait);
 };
