@@ -5,10 +5,15 @@ let timeline;
 
 const setInputFunctions = () => {
     document.getElementById("datasetSubmit").onclick = async () => {
-        const sheetsId = document.getElementById("datasetUpload").value;
+        sheetsId = document.getElementById("datasetUpload").value;
 
         const tempData = await processData(sheetsId);
-        data = tempData ? tempData : data;
+        if (tempData) {
+            data = tempData;
+            updateURL();
+        } else {
+            return;
+        }
 
         reset();
     };
