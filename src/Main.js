@@ -88,28 +88,53 @@ const setInputFunctions = () => {
 const setButtonFunctions = () => {
     document.onkeydown = (event) => {
         if (event.key === "ArrowRight" && !settingsOpen && (interactionMode === "interactive" || interactionMode === "dynamic")) {
+            pressBackEvent = true;
+
+            updateButtonStatuses();
+        }
+
+        if (event.key === "ArrowLeft" && !settingsOpen && (interactionMode === "interactive" || interactionMode === "dynamic")) {
             pressNextEvent = true;
+
+            updateButtonStatuses();
         }
 
         if (event.key === "ArrowUp" && !settingsOpen && (interactionMode === "interactive" || interactionMode === "dynamic")) {
             pressNextEventGroup = true;
+
+            updateButtonStatuses();
         }
 
         if (event.key === "r" && !settingsOpen && (interactionMode === "interactive" || interactionMode === "dynamic")) {
             pressResetDataset = true;
+
+            updateButtonStatuses();
         }
 
         if (event.key === "Escape") {
             pressOpenSettings = true;
+
+            updateButtonStatuses();
         }
     };
 
     document.onkeyup = (event) => {
-        if (event.key === "ArrowRight" && pressNextEvent && !settingsOpen) {
+        if (event.key === "ArrowRight" && pressBackEvent && !settingsOpen) {
+            pressBackEvent = false
+
+            interactionHandler("keyboard: back");
+            backEvent();
+
+            updateButtonStatuses();
+        }
+
+        if (event.key === "ArrowLeft" && pressNextEvent && !settingsOpen) {
             pressNextEvent = false
 
             interactionHandler("keyboard: next event");
             nextEvent();
+
+            updateButtonStatuses();
         }
 
         if (event.key === "ArrowUp" && pressNextEventGroup && !settingsOpen) {
@@ -117,6 +142,8 @@ const setButtonFunctions = () => {
 
             interactionHandler("keyboard: next event group");
             nextEventGroup();
+
+            updateButtonStatuses();
         }
 
         if (event.key === "r" && pressResetDataset && !settingsOpen) {
@@ -124,6 +151,8 @@ const setButtonFunctions = () => {
 
             interactionHandler("keyboard: reset");
             reset();
+
+            updateButtonStatuses();
         }
 
         if (event.key === "Escape" && pressOpenSettings) {
@@ -131,7 +160,18 @@ const setButtonFunctions = () => {
 
             interactionHandler("keyboard: toggle settings");
             toggleSettings();
+
+            updateButtonStatuses();
         }
+    };
+
+    document.getElementById("back-button").onclick = () => {
+        if (!settingsOpen && (interactionMode === "interactive" || interactionMode === "dynamic")) {
+            interactionHandler("button: back");
+            backEvent();
+        }
+
+        updateButtonStatuses();
     };
 
     document.getElementById("reset-button").onclick = () => {
@@ -139,6 +179,8 @@ const setButtonFunctions = () => {
             interactionHandler("button: reset");
             reset();
         }
+
+        updateButtonStatuses();
     };
 
     document.getElementById("next-button").onclick = () => {
@@ -146,13 +188,8 @@ const setButtonFunctions = () => {
             interactionHandler("button: next event");
             nextEvent();
         }
-    };
 
-    document.getElementById("next-group-button").onclick = () => {
-        if (!settingsOpen && (interactionMode === "interactive" || interactionMode === "dynamic")) {
-            interactionHandler("button: next event group");
-            nextEventGroup();
-        }
+        updateButtonStatuses();
     };
 };
 
@@ -220,9 +257,18 @@ window.addEventListener('load', async () => {
             time: data[data.length - 1].time
         },
         {
-            label: data[currentGroupIndex].events[currentEventIndex].label,
-            time: data[currentGroupIndex].events[currentEventIndex].time
+            label: data[currentGroupIndex - backGroupAmount].events[currentEventIndex - backEventAmount].label,
+            time: data[currentGroupIndex - backGroupAmount].events[currentEventIndex - backEventAmount].time
         });
+
+    const numEventsInGroup = backGroupAmount === 0 ? currentEventIndex : data[currentGroupIndex - backGroupAmount].events.length - 1;
+    const event = data[currentGroupIndex - backGroupAmount].events[numEventsInGroup - backEventAmount];
+    setMedia(event.label, event.description, event.image);
+    if (backEventAmount > 0 || backGroupAmount > 0) {
+        setTimeout(() => tieredTimeline.setBoldedEvent(currentGroupIndex - backGroupAmount, numEventsInGroup - backEventAmount), 50);
+    }
+
+    updateButtonStatuses();
 });
 
 window.addEventListener('resize', () => {

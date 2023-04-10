@@ -1,5 +1,6 @@
 let settingsOpen = true;
 
+let pressBackEvent = false;
 let pressNextEvent = false;
 let pressNextEventGroup = false;
 let pressResetDataset = false;
@@ -76,8 +77,47 @@ const interactionHandler = (event) => {
     }
 };
 
+const backEvent = () => {
+    let groupIndex = currentGroupIndex - backGroupAmount;
+    let eventIndex = (groupIndex === currentGroupIndex ? currentEventIndex : data[groupIndex].events.length - 1) - backEventAmount;
+
+    if (eventIndex > 0) {
+        backEventAmount += 1;
+        eventIndex -= 1;
+    } else if (groupIndex > 0) {
+        backGroupAmount += 1;
+        groupIndex -= 1;
+
+        backEventAmount = 0;
+        eventIndex = data[groupIndex].events.length - 1;
+    }
+
+    const event = data[groupIndex].events[eventIndex];
+    timeline.nextTime(event);
+    tieredTimeline.setBoldedEvent(groupIndex, eventIndex);
+    setMedia(event.label, event.description, event.image);
+
+    updateURL();
+};
+
 const nextEvent = () => {
-    if (currentEventIndex + 1 < data[currentGroupIndex].events.length) {
+    tieredTimeline.clearBoldedEvent();
+
+    if (backGroupAmount > 0 || backEventAmount > 0) {
+        if (backEventAmount > 0) {
+            backEventAmount -= 1;
+        } else {
+            backGroupAmount -= 1;
+            backEventAmount = backGroupAmount === 0 ? currentEventIndex : (data[currentGroupIndex - backGroupAmount].events.length - 1);
+        }
+
+        const numEventsInGroup = backGroupAmount === 0 ? currentEventIndex : data[currentGroupIndex - backGroupAmount].events.length - 1;
+
+        const event = data[currentGroupIndex - backGroupAmount].events[numEventsInGroup - backEventAmount];
+        timeline.nextTime(event);
+        tieredTimeline.setBoldedEvent(currentGroupIndex - backGroupAmount, numEventsInGroup - backEventAmount);
+        setMedia(event.label, event.description, event.image);
+    } else if (currentEventIndex + 1 < data[currentGroupIndex].events.length) {
         currentEventIndex += 1;
 
         const dataCopy = getSlicedData();
@@ -98,6 +138,10 @@ const nextEvent = () => {
 };
 
 const nextEventGroup = () => {
+    tieredTimeline.clearBoldedEvent();
+    backGroupAmount = 0;
+    backEventAmount = 0;
+
     if (currentEventIndex + 1 < data[currentGroupIndex].events.length) {
         currentEventIndex = data[currentGroupIndex].events.length - 1;
 
@@ -122,6 +166,11 @@ const reset = () => {
     currentGroupIndex = 0;
     currentEventIndex = 0;
 
+    backEventAmount = 0;
+    backGroupAmount = 0;
+
+    tieredTimeline.clearBoldedEvent();
+
     updateURL();
 
     const dataCopy = getSlicedData();
@@ -133,8 +182,8 @@ const reset = () => {
             time: data[data.length - 1].time
         },
         {
-            label: data[0].label,
-            time: data[0].time
+            label: data[0].events[0].label,
+            time: data[0].events[0].time
         });
 };
 
@@ -178,4 +227,24 @@ const initializeDynamicAnimation = () => {
         storeEvent("automatic animation beginning");
         startAnimation(true);
     }, 1000 * dynamicWait);
+};
+
+const updateButtonStatuses = () => {
+    if (backGroupAmount === 0 && backEventAmount === 0 &&
+        currentGroupIndex === data.length - 1 &&
+        currentEventIndex === data[currentGroupIndex].events.length - 1) {
+        document.getElementById("next-button").classList.toggle("enabled-button", false)
+        document.getElementById("next-button").classList.toggle("disabled-button", true)
+    } else {
+        document.getElementById("next-button").classList.toggle("enabled-button", true)
+        document.getElementById("next-button").classList.toggle("disabled-button", false)
+    }
+
+    if (backEventAmount === currentEventIndex && backGroupAmount === currentGroupIndex) {
+        document.getElementById("back-button").classList.toggle("enabled-button", false)
+        document.getElementById("back-button").classList.toggle("disabled-button", true)
+    } else {
+        document.getElementById("back-button").classList.toggle("enabled-button", true)
+        document.getElementById("back-button").classList.toggle("disabled-button", false)
+    }
 };

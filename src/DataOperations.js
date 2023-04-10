@@ -75,6 +75,7 @@ const processData = async (sheetsId) => {
     }
 
     let lastEvent;
+    reals.sort((a, b) => a.time - b.time);
     reals.forEach(e => {
         let subEvents = [];
         events.forEach(d => {
@@ -84,9 +85,18 @@ const processData = async (sheetsId) => {
                 subEvents.push(JSON.parse(JSON.stringify(d)));
             }
         });
+        subEvents.sort((a, b) => a.time - b.time);
         e.eventgroupname = !e.eventgroupname ? e.label : e.eventgroupname;
         e.events = subEvents;
         lastEvent = e;
+
+    });
+
+    reals.forEach((r, i) => {
+        r.events.forEach((e, j) => {
+            e.group = i;
+            e.index = j;
+        });
     });
 
     return reals;

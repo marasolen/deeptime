@@ -154,6 +154,19 @@ class Timeline {
             .style("font-size", fontSize + "px")
             .text("You are here");
 
+        vis.chartAnnotations.selectAll(".here-years")
+            .data([vis.currentTime])
+            .join("text")
+            .transition()
+            .duration(animationDuration)
+            .attr("class", "here-years")
+            .attr("x", d => vis.xScale(d.time))
+            .attr("y", vis.height / 2 + 3.9 * fontSize)
+            .attr("opacity", 1)
+            .style('text-anchor', 'middle')
+            .style("font-size", fontSize + "px")
+            .text(d => vis.numberFormatter(d.time) + " years");
+
         vis.chartAnnotations.selectAll(".end-texts")
             .data([{ label: "Now", time: 0 }, vis.fullAge])
             .join("text")

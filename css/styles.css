@@ -120,7 +120,7 @@ body {
     max-width: 90%;
 }
 
-#reset-button {
+#next-button {
     position: absolute;
 
     width: 9%;
@@ -130,7 +130,7 @@ body {
     left: 5.5%;
 }
 
-#next-button {
+#reset-button {
     position: absolute;
 
     width: 9%;
@@ -140,7 +140,7 @@ body {
     left: 16.75%;
 }
 
-#next-group-button {
+#back-button {
     position: absolute;
 
     width: 9%;
@@ -151,10 +151,21 @@ body {
 }
 
 .interface-button {
-    background-color: #dddddd;
+    background-color: #000000;
+    color: #ffffff;
     border: none;
+    box-shadow: 0 8px 16px 4px #444444;
 }
 
-.interface-button:hover {
-    background-color: #cccccc;
+.enabled-button:hover {
+    background-color: #444444;
+}
+
+.enabled-button:active {
+    box-shadow: 0 4px 8px 2px #444444;
+}
+
+.disabled-button {
+    background-color: #888888;
+    box-shadow: 0 4px 8px 2px #444444;
 }
