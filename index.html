@@ -59,8 +59,9 @@
             </div>
             <div id="instructions">
                 <h1>Instructions for Use</h1>
-                <p>To continue to the next event, press the right arrow key.</p>
-                <p>To continue to the next event group, press the up arrow key.</p>
+                <p>To rewind toan older event, press the left arrow key.</p>
+                <p>To move forward to a more recent event, press the right arrow key.</p>
+                <p>To skip to the next event group, press the up arrow key.</p>
                 <p>To reset the system to the initial state, press the R key.</p>
                 <p>To open or close this menu, press the Escape key.</p>
                 <p>Click this button to toggle whether this menu should show up on start up.<br>
@@ -109,18 +110,9 @@
             <img id="media-image">
         </div>
         <div id="interaction-container">
-            <input type="button"
-                   class="interface-button"
-                   id="reset-button"
-                   value="Reset">
-            <input type="button"
-                   class="interface-button"
-                   id="next-button"
-                   value="Next">
-            <input type="button"
-                   class="interface-button"
-                   id="next-group-button"
-                   value="Next Group">
+            <button class="interface-button enabled-button" id="next-button">Rewind<br>←</button>
+            <button class="interface-button enabled-button" id="reset-button">Reset<br>⟲</button>
+            <button class="interface-button enabled-button" id="back-button">Forward<br>→</button>
         </div>
 
         <!-- Libraries -->
@@ -131,6 +123,7 @@
 
         <!-- Source Code -->
         <script src="src/Config.js" typ="text/javascript"></script>
+        <script src="src/MediaManager.js" typ="text/javascript"></script>
         <script src="src/Timeline.js" type="text/javascript"></script>
         <script src="src/TieredTimeline.js" type="text/javascript"></script>
         <script src="src/SettingManagement.js" type="text/javascript"></script>

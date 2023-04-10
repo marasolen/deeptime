@@ -3,11 +3,14 @@ let sheetsId = "1WTxwt7RjEiNdJqSu6U2L1_CGpbsOwgUYQT3VyrdDoaI";
 let currentGroupIndex = 0;
 let currentEventIndex = 0;
 
+let backEventAmount = 0;
+let backGroupAmount = 0;
+
 let interactionMode = "interactive";
 let dynamicWait = 300;
-let animationInterval = 120;
+let animationInterval = 30;
 let animationMode = "animation-event";
-let animationResetInterval = 240;
+let animationResetInterval = 60;
 
 let noMenu = false;
 
@@ -44,6 +47,18 @@ const loadURLSettings = async (processData) => {
     if (currentEventIndex >= data[currentGroupIndex].events.length) {
         currentEventIndex = data[currentGroupIndex].events.length - 1;
         url.searchParams.set("eIndex", currentEventIndex);
+    }
+
+    backGroupAmount = +loadURLSetting(url, "backGroup", backGroupAmount);
+    if (backGroupAmount > currentGroupIndex) {
+        backGroupAmount = currentGroupIndex;
+        url.searchParams.set("backGroup", backGroupAmount);
+    }
+
+    backEventAmount = +loadURLSetting(url, "backEvent", backEventAmount);
+    if (backEventAmount > currentEventIndex) {
+        backEventAmount = currentEventIndex;
+        url.searchParams.set("backEvent", backEventAmount);
     }
 
     interactionMode = loadURLSetting(url, "mode", "interactive");
@@ -105,6 +120,8 @@ const updateURL = () => {
     url.searchParams.set("id", sheetsId);
     url.searchParams.set("gIndex", currentGroupIndex);
     url.searchParams.set("eIndex", currentEventIndex);
+    url.searchParams.set("backEvent", backEventAmount.toString());
+    url.searchParams.set("backGroup", backGroupAmount.toString());
     url.searchParams.set("mode", interactionMode);
     url.searchParams.set("dynamicWait", dynamicWait);
     url.searchParams.set("interval", animationInterval);

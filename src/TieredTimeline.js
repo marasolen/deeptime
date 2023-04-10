@@ -362,7 +362,12 @@ class TieredTimeline {
             });
 
             const nonCopyEvents = d.events.filter(d => !d.copy);
-            const sliceValue = d.eventgroupname === d.label ? -1 : nonCopyEvents.length;
+            let sliceValue = nonCopyEvents.length;
+            if (d.eventgroupname === d.label) {
+                sliceValue = -1;
+                d.group = nonCopyEvents[nonCopyEvents.length - 1].group;
+                d.index = nonCopyEvents[nonCopyEvents.length - 1].index;
+            }
 
             vis.chartStandardLines.selectAll(".segments-" + j)
                 .data(d.segments)
@@ -413,7 +418,8 @@ class TieredTimeline {
                 .join("text")
                 .transition()
                 .duration(animationDuration)
-                .attr("class", "event-text-" + j)
+                .attr("id", d => j === vis.data.length - 1 ? "" : "event-text-" + d.group + "-" + d.index)
+                .attr("class", "event-text event-text-" + j)
                 .attr("x", e => d.xScale(e.time))
                 .attr("y", e => vis.yScale(d.time) - (e.labelLevel + 1.5) * 1.1 * archiveFontSize)
                 .attr("opacity", _ => j === vis.data.length - 1 ? 0 : 1)
@@ -426,7 +432,8 @@ class TieredTimeline {
                 .join("text")
                 .transition()
                 .duration(animationDuration)
-                .attr("class", "event-group-label-" + j)
+                .attr("id", d => j === vis.data.length - 1 ? "" : "event-text-" + d.group + "-" + d.index)
+                .attr("class", "event-text event-group-label-" + j)
                 .attr("x", e => d.xScale(e.time) - expandingFontSize)
                 .attr("y", e => vis.yScale(d.time) - 0.2 * expandingFontSize)
                 .attr("opacity", _ => j === vis.data.length - 1 ? 0 : 1)
@@ -554,7 +561,8 @@ class TieredTimeline {
             .duration(animationDuration)
             .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize - expandingFontSize)
             .attr("x", e => vis.main.xScale(e.time))
-            .attr("class", "event-text-main")
+            .attr("id", d => "event-text-" + d.group + "-" + d.index)
+            .attr("class", "event-text event-text-main")
             .attr("opacity", e => (e.hidden || e.copy) ? 0 : 1)
             .style('text-anchor', 'middle')
             .text(e => e.label);
@@ -576,15 +584,23 @@ class TieredTimeline {
             .style('text-anchor', 'middle')
             .text(e => vis.numberFormatter(e.time) + " years");
 
-        let innerHTML = "";
-        innerHTML += `<h1 id=\"media-title\">${vis.main.label}</h1>`;
-        innerHTML += `<p id=\"media-description\">${vis.main.description ? vis.main.description : "A description of " + vis.main.label + "."}</p>`;
-
-        if (vis.main.image) {
-            innerHTML += `<img id="media-image" src="${vis.main.image}">`;
+        if (backGroupAmount === 0 && backEventAmount === 0) {
+            setMedia(vis.main.label, vis.main.description, vis.main.image);
         }
+    }
 
-        document.getElementById("media-focus").innerHTML = innerHTML;
+    clearBoldedEvent() {
+        const vis = this;
+        vis.chartAnnotations.selectAll(".event-text")
+            .attr("font-weight", "normal");
+    }
+
+    setBoldedEvent(group, event) {
+        const vis = this;
+
+        vis.clearBoldedEvent();
+        vis.chartAnnotations.select("#event-text-" + group + "-" + event)
+            .attr("font-weight", "bold");
     }
 
     checkCollision(row, left, right) {
