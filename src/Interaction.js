@@ -230,6 +230,13 @@ const initializeDynamicAnimation = () => {
 };
 
 const updateButtonStatuses = () => {
+    if (currentGroupIndex === data.length - 1 &&
+        currentEventIndex === data[currentGroupIndex].events.length - 1) {
+        document.getElementById("keep-rewinding-indicator").style.display = "none";
+    } else {
+        document.getElementById("keep-rewinding-indicator").style.display = "block";
+    }
+
     if (backGroupAmount === 0 && backEventAmount === 0 &&
         currentGroupIndex === data.length - 1 &&
         currentEventIndex === data[currentGroupIndex].events.length - 1) {

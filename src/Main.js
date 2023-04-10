@@ -224,6 +224,7 @@ const setContainerSizes = () => {
     resizeStyles(instructionsBoxConfig);
     resizeStyles(settingsBoxConfig);
 
+    $("#keep-rewinding-indicator").css("font-size", mediaBoxConfig.descriptionFontSize * window.innerHeight + "px");
     $(".interface-button").css("font-size", mediaBoxConfig.headerFontSize * window.innerHeight + "px");
     $(".interface-button").css("border-radius", 2 * mediaBoxConfig.borderWidth * window.innerHeight + "px");
 };
