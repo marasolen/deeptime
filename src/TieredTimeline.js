@@ -446,6 +446,7 @@ class TieredTimeline {
                 .join("text")
                 .transition()
                 .duration(animationDuration)
+                .attr("id", d => "event-years-" + d.group + "-" + d.index)
                 .attr("class", "event-group-time-" + j)
                 .attr("x", e => d.xScale(e.time) - expandingFontSize)
                 .attr("y", e => vis.yScale(d.time) + 0.8 * expandingFontSize)
@@ -561,7 +562,7 @@ class TieredTimeline {
             .duration(animationDuration)
             .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize - expandingFontSize)
             .attr("x", e => vis.main.xScale(e.time))
-            .attr("id", d => "event-text-" + d.group + "-" + d.index)
+            .attr("id", d => (d.hidden || d.copy) ? "" : "event-text-" + d.group + "-" + d.index)
             .attr("class", "event-text event-text-main")
             .attr("opacity", e => (e.hidden || e.copy) ? 0 : 1)
             .style('text-anchor', 'middle')
@@ -579,10 +580,60 @@ class TieredTimeline {
             .duration(animationDuration)
             .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize)
             .attr("x", e => vis.main.xScale(e.time))
+            .attr("id", d => "event-years-" + d.group + "-" + d.index)
             .attr("class", "event-years-main")
             .attr("opacity", e => (e.hidden || e.copy) ? 0 : 1)
             .style('text-anchor', 'middle')
             .text(e => vis.numberFormatter(e.time) + " years");
+
+        const todayLineEnds = [
+            vis.yScale(vis.main.time) - 1.1 * expandingLineHeight / 2,
+            vis.data.length > 1 ? vis.height + 1.2 * archiveLineHeight / 2 : vis.yScale(vis.main.time) + 1.1 * expandingLineHeight / 2
+        ];
+
+        const todayLineLength = todayLineEnds[1] - todayLineEnds[0];
+
+        vis.chartAnnotations.selectAll(".event-marker-today")
+            .data([{ label: "Today", time: 0 }])
+            .join("rect")
+            .attr("class", "event-marker-today")
+            .attr("y", todayLineEnds[0])
+            .attr("x", e => vis.main.xScale(e.time))
+            .attr("width", 0.25 * expandingLineHeight)
+            .attr("fill", "black")
+            .attr("stroke", "none")
+            .attr("rx", 0.10 * expandingLineHeight)
+            .attr("ry", 0.10 * expandingLineHeight)
+            .attr("opacity", e => e.hidden ? 0 : e.copy ? 0.4 : 1)
+            .transition()
+            .duration(animationDuration)
+            .attr("height", todayLineLength);
+
+        vis.chartAnnotations.selectAll(".end-texts")
+            .data([{ label: "Today", time: 0 }])
+            .join("text")
+            .attr("class", "end-texts")
+            .attr("opacity", 1)
+            .style('text-anchor', 'middle')
+            .style("font-size", expandingFontSize + "px")
+            .text(d => d.label)
+            .transition()
+            .duration(animationDuration)
+            .attr("x", (d, i) => vis.main.xScale(d.time) + 3 * expandingFontSize)
+            .attr("y", todayLineLength / 2 - 1.7 * expandingFontSize);
+
+        vis.chartAnnotations.selectAll(".end-years")
+            .data([{ label: "Today", time: 0 }])
+            .join("text")
+            .attr("class", "end-years")
+            .attr("opacity", 1)
+            .style('text-anchor', 'middle')
+            .style("font-size", expandingFontSize + "px")
+            .text(d => vis.numberFormatter(d.time) + " years")
+            .transition()
+            .duration(animationDuration)
+            .attr("x", (d, i) => vis.main.xScale(d.time) + 3 * expandingFontSize)
+            .attr("y", todayLineLength / 2 - 0.2 * expandingFontSize);
 
         if (backGroupAmount === 0 && backEventAmount === 0) {
             setMedia(vis.main.label, vis.main.description, vis.main.image);
@@ -591,16 +642,40 @@ class TieredTimeline {
 
     clearBoldedEvent() {
         const vis = this;
-        vis.chartAnnotations.selectAll(".event-text")
-            .attr("font-weight", "normal");
+        vis.chartAnnotations.selectAll(".magnifier")
+            .transition()
+            .duration(animationDuration / 4)
+            .attr("opacity", 0);
     }
 
     setBoldedEvent(group, event) {
         const vis = this;
 
         vis.clearBoldedEvent();
-        vis.chartAnnotations.select("#event-text-" + group + "-" + event)
-            .attr("font-weight", "bold");
+        const selectedEvent = vis.chartAnnotations.select("#event-text-" + group + "-" + event);
+        const isGroupLabel = selectedEvent.classed("event-group-label-" + group);
+        let width = selectedEvent.node().getComputedTextLength() * 1.2;
+        if ((group === vis.data.length - 1) || isGroupLabel) {
+            width = d3.max([width, vis.chartAnnotations.select("#event-years-" + group + "-" + event).node().getComputedTextLength() * 1.2]);
+        }
+        const height = +selectedEvent.style("font-size").slice(0, -2) * ((group === vis.data.length - 1) || isGroupLabel ? 2.6 : 1.8);
+
+        vis.chartAnnotations.selectAll(".magnifier")
+            .data([null])
+            .join("rect")
+            .attr("class", "magnifier")
+            .attr("fill", "none")
+            .attr("stroke", "black")
+            .attr("stroke-width", height / ((group === vis.data.length - 1) || isGroupLabel ? 12 : 6))
+            .attr("rx", vis.width / 200)
+            .attr("ry", vis.width / 200)
+            .transition()
+            .duration(animationDuration / 4)
+            .attr("opacity", 1)
+            .attr("width", width)
+            .attr("height", height)
+            .attr("x", selectedEvent.attr("x") - width / (isGroupLabel ? 1.1 : 2))
+            .attr("y", selectedEvent.attr("y") - ((group === vis.data.length - 1) || isGroupLabel ? 0.9 : 1.3) * height / 2)
     }
 
     checkCollision(row, left, right) {

@@ -168,22 +168,22 @@ class Timeline {
             .text(d => vis.numberFormatter(d.time) + " years");
 
         vis.chartAnnotations.selectAll(".end-texts")
-            .data([{ label: "Now", time: 0 }, vis.fullAge])
+            .data([{ label: "Today", time: 0 }, vis.fullAge])
             .join("text")
             .attr("class", "end-texts")
-            .attr("x", d => vis.xScale(d.time))
-            .attr("y", vis.height / 2 - 3 * fontSize)
+            .attr("x", (d, i) => vis.xScale(d.time) + (i === 0 ? 3 * fontSize : 0))
+            .attr("y", (_, i) => vis.height / 2 - (i === 0 ? 0.5 : 3) * fontSize)
             .attr("opacity", 1)
             .style('text-anchor', 'middle')
             .style("font-size", fontSize + "px")
             .text(d => d.label);
 
         vis.chartAnnotations.selectAll(".end-years")
-            .data([{ label: "Now", time: 0 }, vis.fullAge])
+            .data([{ label: "Today", time: 0 }, vis.fullAge])
             .join("text")
             .attr("class", "end-years")
-            .attr("x", d => vis.xScale(d.time))
-            .attr("y", vis.height / 2 - 1.5 * fontSize)
+            .attr("x", (d, i) => vis.xScale(d.time) + (i === 0 ? 3 * fontSize : 0))
+            .attr("y", (_, i) => vis.height / 2 - (i === 0 ? -1 : 1.5) * fontSize)
             .attr("opacity", 1)
             .style('text-anchor', 'middle')
             .style("font-size", fontSize + "px")

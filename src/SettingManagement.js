@@ -7,10 +7,10 @@ let backEventAmount = 0;
 let backGroupAmount = 0;
 
 let interactionMode = "interactive";
-let dynamicWait = 300;
-let animationInterval = 30;
+let dynamicWait = 60;
+let animationInterval = 2;
 let animationMode = "animation-event";
-let animationResetInterval = 60;
+let animationResetInterval = 6;
 
 let noMenu = false;
 

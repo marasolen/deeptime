@@ -191,6 +191,18 @@ const setButtonFunctions = () => {
 
         updateButtonStatuses();
     };
+
+    document.getElementById("pause-button").onclick = () => {
+        if (!settingsOpen && interactionMode === "dynamic") {
+            endAnimation();
+        }
+    };
+
+    document.getElementById("wait-button").onclick = () => {
+        if (!settingsOpen && interactionMode === "dynamic") {
+            cancelAnimation();
+        }
+    };
 };
 
 const setContainerSize = (config) => {
@@ -224,9 +236,10 @@ const setContainerSizes = () => {
     resizeStyles(instructionsBoxConfig);
     resizeStyles(settingsBoxConfig);
 
-    $("#keep-rewinding-indicator").css("font-size", mediaBoxConfig.descriptionFontSize * window.innerHeight + "px");
     $(".interface-button").css("font-size", mediaBoxConfig.headerFontSize * window.innerHeight + "px");
+    $("#next-button").css("font-size", 1.3 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
     $(".interface-button").css("border-radius", 2 * mediaBoxConfig.borderWidth * window.innerHeight + "px");
+    $(".interaction-description").css("font-size", mediaBoxConfig.headerFontSize * window.innerHeight + "px");
 };
 
 window.addEventListener('load', async () => {
@@ -280,4 +293,9 @@ window.addEventListener('resize', () => {
 
     timeline.config = timelineConfig;
     timeline.setupChart();
+
+    const numEventsInGroup = backGroupAmount === 0 ? currentEventIndex : data[currentGroupIndex - backGroupAmount].events.length - 1;
+    if (backEventAmount > 0 || backGroupAmount > 0) {
+        setTimeout(() => tieredTimeline.setBoldedEvent(currentGroupIndex - backGroupAmount, numEventsInGroup - backEventAmount), 50);
+    }
 });
