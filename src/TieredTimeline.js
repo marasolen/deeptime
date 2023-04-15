@@ -562,7 +562,7 @@ class TieredTimeline {
             .duration(animationDuration)
             .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize - expandingFontSize)
             .attr("x", e => vis.main.xScale(e.time))
-            .attr("id", d => "event-text-" + d.group + "-" + d.index)
+            .attr("id", d => (d.hidden || d.copy) ? "" : "event-text-" + d.group + "-" + d.index)
             .attr("class", "event-text event-text-main")
             .attr("opacity", e => (e.hidden || e.copy) ? 0 : 1)
             .style('text-anchor', 'middle')
