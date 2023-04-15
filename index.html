@@ -110,12 +110,24 @@
             <img id="media-image">
         </div>
 
+        <div id="automation-happening" style="display: none;">
+            <div class="interaction-description">
+                <p>The exhibit is currently automatically animating, press this button to interact at your own pace.</p>
+            </div>
+            <button class="interface-button enabled-button" id="pause-button">Let Me Interact</button>
+        </div>
 
-        <div id="interaction-container">
-            <p id="keep-rewinding-indicator">Keep rewinding, there are more events to explore!</p>
-            <button class="interface-button enabled-button" id="next-button">Rewind<br>←</button>
-            <button class="interface-button enabled-button" id="reset-button">Reset<br>⟲</button>
-            <button class="interface-button enabled-button" id="back-button">Forward<br>→</button>
+        <div id="automation-begins-warning" style="display: none;">
+            <div class="interaction-description">
+                <p>The exhibit will begin automatic animation in 5 seconds</p>
+            </div>
+            <button class="interface-button enabled-button" id="wait-button">Wait!</button>
+        </div>
+
+        <div id="interaction-container" style="display: none;">
+            <button class="interface-button enabled-button" id="next-button">Explore the Past</button>
+            <button class="interface-button enabled-button" id="reset-button">Reset to Today</button>
+            <button class="interface-button enabled-button" id="back-button">Revisit Events</button>
         </div>
 
         <!-- Libraries -->

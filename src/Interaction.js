@@ -202,6 +202,15 @@ const toggleSettings = () => {
 };
 
 const startAnimation = (first) => {
+    backGroupAmount = 0;
+    backEventAmount = 0;
+
+    if (interactionMode === "dynamic") {
+        document.getElementById("automation-happening").style.display = "block";
+        document.getElementById("automation-begins-warning").style.display = "none";
+        document.getElementById("interaction-container").style.display = "none";
+    }
+
     if (currentGroupIndex + 1 === data.length && currentEventIndex + 1 === data[currentGroupIndex].events.length) {
         reset();
         animationTimeout = setTimeout(() => startAnimation(false), 1000 * animationInterval);
@@ -222,21 +231,24 @@ const startAnimation = (first) => {
     }
 };
 
+const startAnimationCountdown = () => {
+    document.getElementById("automation-happening").style.display = "none";
+    document.getElementById("automation-begins-warning").style.display = "block";
+    document.getElementById("interaction-container").style.display = "none";
+    dynamicTimeout = setTimeout(() => {
+        storeEvent("automatic animation starting");
+        startAnimation(true);
+    }, 1000 * 5)
+};
+
 const initializeDynamicAnimation = () => {
     dynamicTimeout = setTimeout(() => {
-        storeEvent("automatic animation beginning");
-        startAnimation(true);
+        storeEvent("automatic animation prompted");
+        startAnimationCountdown();
     }, 1000 * dynamicWait);
 };
 
 const updateButtonStatuses = () => {
-    if (currentGroupIndex === data.length - 1 &&
-        currentEventIndex === data[currentGroupIndex].events.length - 1) {
-        document.getElementById("keep-rewinding-indicator").style.display = "none";
-    } else {
-        document.getElementById("keep-rewinding-indicator").style.display = "block";
-    }
-
     if (backGroupAmount === 0 && backEventAmount === 0 &&
         currentGroupIndex === data.length - 1 &&
         currentEventIndex === data[currentGroupIndex].events.length - 1) {
@@ -247,7 +259,9 @@ const updateButtonStatuses = () => {
         document.getElementById("next-button").classList.toggle("disabled-button", false)
     }
 
-    if (backEventAmount === currentEventIndex && backGroupAmount === currentGroupIndex) {
+    if ((backGroupAmount === 0 ? backEventAmount === currentEventIndex :
+        backEventAmount === data[currentGroupIndex - backGroupAmount].events.length - 1) &&
+        backGroupAmount === currentGroupIndex) {
         document.getElementById("back-button").classList.toggle("enabled-button", false)
         document.getElementById("back-button").classList.toggle("disabled-button", true)
     } else {
@@ -255,3 +269,17 @@ const updateButtonStatuses = () => {
         document.getElementById("back-button").classList.toggle("disabled-button", false)
     }
 };
+
+const endAnimation = () => {
+    document.getElementById("automation-happening").style.display = "none";
+    document.getElementById("automation-begins-warning").style.display = "none";
+    document.getElementById("interaction-container").style.display = "block";
+    interactionHandler("button: end animation");
+}
+
+const cancelAnimation = () => {
+    document.getElementById("automation-happening").style.display = "none";
+    document.getElementById("automation-begins-warning").style.display = "none";
+    document.getElementById("interaction-container").style.display = "block";
+    interactionHandler("button: cancel animation");
+}

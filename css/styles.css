@@ -120,45 +120,67 @@ body {
     max-width: 90%;
 }
 
-#keep-rewinding-indicator {
+.interaction-description {
     position: absolute;
 
+    width: 31.5%;
+    height: 8%;
+
+    top: 77.5%;
+    left: 5%;
+
+    align-content: center;
     text-align: center;
+}
 
-    width: 12%;
+#pause-button {
+    position: absolute;
 
-    top: 80%;
-    left: 4%;
+    width: 31.5%;
+    height: 8%;
+
+    top: 88%;
+    left: 5%;
+}
+
+#wait-button {
+    position: absolute;
+
+    width: 31.5%;
+    height: 8%;
+
+    top: 88%;
+    left: 5%;
 }
 
 #next-button {
     position: absolute;
 
-    width: 12%;
-    height: 10%;
+    width: 19.5%;
+    height: 12%;
 
-    top: 86%;
-    left: 4%;
+    top: 84%;
+    left: 5%;
 }
 
 #reset-button {
     position: absolute;
 
-    width: 6%;
-    height: 10%;
+    width: 12%;
+    height: 5%;
 
-    top: 86%;
-    left: 18.25%;
+    top: 84%;
+    left: 25.5%;
 }
 
 #back-button {
     position: absolute;
 
     width: 12%;
-    height: 10%;
+    height: 5%;
 
-    top: 86%;
-    left: 26.5%;
+    top: 91%;
+    left: 25.5%;
 }
 
 .interface-button {
