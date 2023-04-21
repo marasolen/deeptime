@@ -21,7 +21,7 @@ const tieredTimelineConfig = {
 const mediaBoxConfig = {
     parentElement: "#media-focus",
     borderWidth:         0.4 / 100,
-    headerFontSize:      3.0 / 100,
+    headerFontSize:      2.8 / 100,
     descriptionFontSize: 1.3 / 100
 }
 
