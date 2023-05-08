@@ -1,9 +1,5 @@
 let settingsOpen = true;
 
-let pressBackEvent = false;
-let pressNextEvent = false;
-let pressNextEventGroup = false;
-let pressResetDataset = false;
 let pressOpenSettings = false;
 
 let animationTimeout;
@@ -59,12 +55,10 @@ const startDownloadTimeout = () => {
 };
 
 const storeEvent = (event) => {
-    if (shouldLogEvents) {
-        logEvents.push({ datetime: (new Date()).toISOString(), event: event});
+    logEvents.push({ datetime: (new Date()).toISOString(), event: event});
 
-        if (logEvents.length >= 1000) {
-            downloadLogs();
-        }
+    if (logEvents.length >= 1000) {
+        downloadLogs();
     }
 };
 
@@ -185,20 +179,6 @@ const reset = () => {
             label: data[0].events[0].label,
             time: data[0].events[0].time
         });
-};
-
-const toggleSettings = () => {
-    clearTimeout(dynamicTimeout);
-    clearTimeout(animationTimeout);
-    settingsOpen = !settingsOpen;
-    if (!settingsOpen) {
-        if (interactionMode === "animated") {
-            startAnimation(true);
-        } else if (interactionMode === "dynamic") {
-            initializeDynamicAnimation();
-        }
-    }
-    document.getElementById("settings-instructions").style.display = settingsOpen ? "block" : "none";
 };
 
 const startAnimation = (first) => {

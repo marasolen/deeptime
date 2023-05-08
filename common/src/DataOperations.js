@@ -112,3 +112,33 @@ const getSlicedData = () => {
 
     return dataCopy;
 };
+
+const getData = async () => {
+    const sheetsId = await loadURLSettings(processData);
+    if (!sheetsId) {
+        return;
+    }
+
+    data = await processData(sheetsId);
+    if (!data) {
+        return;
+    }
+
+    if (currentGroupIndex >= data.length) {
+        currentGroupIndex = data.length - 1;
+    }
+
+    if (currentEventIndex >= data[currentGroupIndex].events.length) {
+        currentEventIndex = data[currentGroupIndex].events.length - 1;
+    }
+
+    if (backGroupAmount > currentGroupIndex) {
+        backGroupAmount = currentGroupIndex;
+    }
+
+    if (backEventAmount > currentEventIndex) {
+        backEventAmount = backGroupAmount === 0 ? currentEventIndex : (data[currentGroupIndex - backGroupAmount].events.length - 1);
+    }
+
+    updateURL();
+};
