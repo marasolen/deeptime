@@ -12,6 +12,8 @@
 
     background-color: black;
     color: white;
+    
+    z-index: 1;
 }
 
 #simple-timeline {

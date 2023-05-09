@@ -1,4 +1,4 @@
-let sheetsId = null;
+let sheetsId = "";
 
 let user = "";
 let pass = "";
@@ -57,6 +57,8 @@ const updateURL = () => {
     let url = new URL(window.location.href);
 
     url.searchParams.set("id", sheetsId);
+    url.searchParams.set("user", user);
+    url.searchParams.set("pass", pass);
     url.searchParams.set("gIndex", currentGroupIndex);
     url.searchParams.set("eIndex", currentEventIndex);
     url.searchParams.set("backEvent", backEventAmount.toString());

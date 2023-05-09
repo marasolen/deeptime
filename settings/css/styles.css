@@ -1,39 +1,11 @@
-#settings-instructions {
-    position: absolute;
-
-    width: 100%;
-    height: 100%;
-
-    top: 0%;
-    left: 0%;
-
-    background-color: white;
-    z-index: 1;
-}
-
 #upload {
     position: absolute;
 
-    width: 30%;
-    height: 80%;
+    width: 41%;
+    height: 64%;
 
-    top: 10%;
-    left: 15%;
-
-    align-content: center;
-    text-align: left;
-    border: 5px dashed black;
-    border-radius: 30px;
-}
-
-#instructions {
-    position: absolute;
-
-    width: 30%;
-    height: 32%;
-
-    top: 10%;
-    left: 55%;
+    top: 4%;
+    left: 5%;
 
     align-content: center;
     text-align: left;
@@ -44,11 +16,11 @@
 #settings {
     position: absolute;
 
-    width: 30%;
-    height: 38%;
+    width: 41%;
+    height: 28%;
 
-    top: 52%;
-    left: 55%;
+    top: 4%;
+    left: 51%;
 
     align-content: center;
     text-align: left;
@@ -56,119 +28,37 @@
     border-radius: 30px;
 }
 
-#simple-timeline {
+#advanced {
     position: absolute;
 
-    width: 100%;
-    height: 12%;
+    width: 41%;
+    height: 28%;
 
-    top: 0%;
-    left: 0%;
-}
-
-#separator {
-    position: absolute;
-
-    width: 100%;
-    height: 1%;
-
-    top: 12%;
-    left: 0%;
-
-    border: none;
-    border-top: 5px dashed black;
-}
-
-#tiered-timeline {
-    position: absolute;
-
-    width: 100%;
-    height: 87%;
-
-    top: 12%;
-    left: 0%;
-}
-
-#media-focus {
-    position: absolute;
-
-    width: 30%;
-    height: 40%;
-
-    top: 33%;
-    left: 5%;
+    top: 40%;
+    left: 51%;
 
     align-content: center;
-    text-align: center;
+    text-align: left;
     border: 5px dashed black;
     border-radius: 30px;
 }
 
-#media-image {
-    max-height: 40%;
-
-    max-width: 90%;
-}
-
-.interaction-description {
+#welcome {
     position: absolute;
 
-    width: 31.5%;
-    height: 8%;
-
-    top: 77.5%;
-    left: 5%;
-
-    align-content: center;
-    text-align: center;
-}
-
-#pause-button {
-    position: absolute;
-
-    width: 31.5%;
-    height: 8%;
-
-    top: 88%;
-    left: 5%;
-}
-
-#wait-button {
-    position: absolute;
-
-    width: 31.5%;
-    height: 8%;
-
-    top: 88%;
-    left: 5%;
-}
-
-#next-button {
-    position: absolute;
-
-    width: 19.5%;
+    width: 20%;
     height: 12%;
 
-    top: 84%;
-    left: 5%;
+    top: 76%;
+    left: 26%;
 }
 
-#reset-button {
+#start {
     position: absolute;
 
-    width: 12%;
-    height: 5%;
+    width: 20%;
+    height: 12%;
 
-    top: 84%;
-    left: 25.5%;
-}
-
-#back-button {
-    position: absolute;
-
-    width: 12%;
-    height: 5%;
-
-    top: 91%;
-    left: 25.5%;
+    top: 76%;
+    left: 54%;
 }

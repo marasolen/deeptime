@@ -98,6 +98,7 @@ window.addEventListener('load', async () => {
     loadURLSettings();
     if (!sheetsId) {
         changePage("welcome");
+        return;
     }
 
     await getData();
@@ -145,6 +146,8 @@ window.addEventListener('load', async () => {
     }
 
     updateButtonStatuses();
+
+    document.getElementById("loading").style.display = "none";
 });
 
 window.addEventListener('resize', () => {

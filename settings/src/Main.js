@@ -8,21 +8,16 @@ const updatePage = () => {
         $("#system-mode").val("interactive").change();
         document.getElementById("animation-options").style.display = "none";
         document.getElementById("dynamic-options").style.display = "none";
-        document.getElementById("interaction-container").style.display = "block";
     } else if (interactionMode === "animated") {
         $("#system-mode").val("animated").change();
         document.getElementById("animation-options").style.display = "block";
         document.getElementById("dynamic-options").style.display = "none";
-        document.getElementById("interaction-container").style.display = "none";
     } else {
         $("#system-mode").val("dynamic").change();
         document.getElementById("animation-options").style.display = "block";
         document.getElementById("dynamic-options").style.display = "block";
-        document.getElementById("interaction-container").style.display = "block";
     }
 
-    $("#menu-toggle-status").text("Current status: " +
-        (url.searchParams.get("noMenu") === "true" ? "will not show" : "will show"));
     $("#dynamic-wait").val(dynamicWait).change();
     $("#interval").val(animationInterval).change();
     $("#reset-delay").val(animationResetInterval).change();
@@ -30,30 +25,34 @@ const updatePage = () => {
     ["animation-event", "animation-event-group"].forEach(style => {
         $('input:radio[name=animation-style]').filter('[id=' + style + ']').prop("checked", animationMode === style);
     })
-
-    document.getElementById("trace-options").style.display = "block";
-    $("#log-data-interval").val(logInterval).change();
 }
 
 const setInputFunctions = () => {
+    document.getElementById("welcome").onclick = async () => {
+        changePage("welcome");
+    };
+    document.getElementById("start").onclick = async () => {
+        if (data) {
+            changePage("../");
+        }
+    };
+
     document.getElementById("datasetSubmit").onclick = async () => {
         sheetsId = document.getElementById("datasetUpload").value;
 
-        const tempData = await processData(sheetsId);
-        if (tempData) {
-            data = tempData;
+        data = await processData(sheetsId);
+        if (data) {
+            document.getElementById("start").classList.toggle("enabled-button", true);
+            document.getElementById("start").classList.toggle("disabled-button", false);
             updateURL();
         } else {
+            document.getElementById("start").classList.toggle("enabled-button", false);
+            document.getElementById("start").classList.toggle("disabled-button", true);
             return;
         }
 
         reset();
     };
-
-    $('#log-data-interval').on("change", () => {
-        logInterval = $("#log-data-interval").val();
-        updateURL();
-    });
 
     document.getElementById("system-mode").onchange = () => {
         interactionMode = document.getElementById("system-mode").value;
@@ -90,6 +89,18 @@ const setInputFunctions = () => {
         animationResetInterval = $("#reset-delay").val();
         updateURL();
     });
+
+    $('#username').on("change", () => {
+        console.log("here");
+        user = $("#username").val();
+        console.log(user);
+        updateURL();
+    });
+
+    $('#password').on("change", () => {
+        pass = $("#password").val();
+        updateURL();
+    });
 };
 
 const setContainerSize = (config) => {
@@ -111,12 +122,15 @@ const resizeStyles = (config) => {
 
 const setContainerSizes = () => {
     setContainerSize(uploadBoxConfig);
-    setContainerSize(instructionsBoxConfig);
     setContainerSize(settingsBoxConfig);
+    setContainerSize(advancedBoxConfig);
 
     resizeStyles(uploadBoxConfig);
-    resizeStyles(instructionsBoxConfig);
     resizeStyles(settingsBoxConfig);
+    resizeStyles(advancedBoxConfig);
+    
+    $(".interface-button").css("font-size", uploadBoxConfig.headerFontSize * window.innerHeight + "px");
+    $(".interface-button").css("border-radius", 2 * uploadBoxConfig.borderWidth * window.innerHeight + "px");
 };
 
 window.addEventListener('load', async () => {
@@ -126,16 +140,17 @@ window.addEventListener('load', async () => {
     loadURLSettings();
     await getData();
 
+    if (data) {
+        document.getElementById("start").classList.toggle("enabled-button", true);
+        document.getElementById("start").classList.toggle("disabled-button", false);
+    }
+
     setInputFunctions();
     setContainerSizes();
 
-    const sheetsId = await loadURLSettings(processData);
-
-    if (sheetsId) {
-        data = processData(sheetsId);
-    }
-
     updatePage();
+
+    document.getElementById("loading").style.display = "none";
 });
 
 window.addEventListener('resize', () => {

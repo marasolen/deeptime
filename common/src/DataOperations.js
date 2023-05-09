@@ -2,6 +2,7 @@ let data;
 
 const errorMessage = "Error with provided Google Sheets ID. Check that it is a valid ID and that the" +
     "Sheet is viewable by anyone with the link.";
+const successMessage = "The dataset was successfully parsed."
 
 const getTimeInYears = (unit, value) => {
     switch (unit) {
@@ -27,10 +28,13 @@ const processData = async (sheetsId) => {
     }).catch(error => {
         console.log(error);
         uploadStatus.text(errorMessage);
+        uploadStatus.css("color", "red");
+        return null;
     });
 
     if (!events || events.length === 0) {
         uploadStatus.text(errorMessage);
+        uploadStatus.css("color", "red");
         return null;
     }
 
@@ -98,6 +102,9 @@ const processData = async (sheetsId) => {
             e.index = j;
         });
     });
+
+    uploadStatus.text(successMessage);
+    uploadStatus.css("color", "green");
 
     return reals;
 };

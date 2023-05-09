@@ -22,6 +22,8 @@ const resizeStyles = () => {
 window.addEventListener('load', async () => {
     setButtonFunctions();
     resizeStyles();
+
+    document.getElementById("loading").style.display = "none";
 });
 
 window.addEventListener('resize', () => {
