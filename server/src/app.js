@@ -2,7 +2,7 @@ const express = require('express');
 const fs = require('fs');
 const scheduler = require("node-schedule");
 
-const keys = JSON.parse(fs.readFileSync('keys.json'));
+const userPassKeys = JSON.parse(fs.readFileSync('keys.json'));
 
 let data = fs.existsSync("../data/lastData.json") ? JSON.parse(fs.readFileSync("../data/lastData.json")) : [];
 let dataToWrite = false;
@@ -21,17 +21,47 @@ const app = express();
 
 app.use(express.json());
 
+const sitePath = "/home/solen/website/";
+
+app.use(express.static(sitePath));
+
+app.get('/', (_, response) => {
+    response.status(200).sendFile(sitePath + "vis/index.html");
+});
+
+app.get('/settings', (_, response) => {
+    response.status(200).sendFile(sitePath + "settings/index.html");
+});
+
+app.get('/welcome', (_, response) => {
+    response.status(200).sendFile(sitePath + "welcome/index.html");
+});
+
+app.get('/ip', (request, response) => {
+    const forwardedIpsStr = request.header('x-forwarded-for');
+    let ipAddress = '';
+
+    if (forwardedIpsStr) {
+        ipAddress = forwardedIpsStr.split(',')[0];
+        response.status(200).json({ success: true, ipaddress: ipAddress });
+    } else {
+        response.status(400).json({ success: false, message: "failed to get IP address" });
+    }
+});
+
 app.post('/', (request, response) => {
     const newData = request.body;
 
-    if (!("user" in newData && newData.user in keys)) {
-        response.status(400).json({ success: false, message: "invalid user/password" });
-        return;
-    }
+    let user;
 
-    if (!("pass" in newData && keys[newData.user] === newData.pass)) {
-        response.status(400).json({ success: false, message: "invalid user/password" });
-        return;
+    if ("user" in newData && newData.user in userPassKeys) {
+        if ("pass" in newData && userPassKeys[newData.user] === newData.pass) {
+            user = newData.user;
+        } else {
+            user = "default";
+        }
+    } else {
+        user = "default";
     }
 
     if (!("datetime" in newData && "event" in newData && "ipaddress" in newData)) {
@@ -39,7 +69,7 @@ app.post('/', (request, response) => {
         return;
     }
 
-    data.push({ datetime: newData.datetime, event: newData.event, ipaddress: newData.ipaddress });
+    data.push({ user: user, datetime: newData.datetime, event: newData.event, ipaddress: newData.ipaddress });
     dataToWrite = true;
     response.status(200).json({ success: true, message: 'data received' });
 });

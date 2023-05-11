@@ -35,7 +35,7 @@ const loadURLSettings = () => {
     sheetsId = loadURLSetting(url, "id", sheetsId);
 
     user = loadURLSetting(url, "user", user);
-    pass = loadURLSetting(url, "pass", pass);
+    pass = decodeURIComponent(loadURLSetting(url, "pass", pass));
 
     currentGroupIndex = +loadURLSetting(url, "gIndex", currentGroupIndex);
     currentEventIndex = +loadURLSetting(url, "eIndex", currentEventIndex);
@@ -58,7 +58,7 @@ const updateURL = () => {
 
     url.searchParams.set("id", sheetsId);
     url.searchParams.set("user", user);
-    url.searchParams.set("pass", pass);
+    url.searchParams.set("pass", encodeURIComponent(pass));
     url.searchParams.set("gIndex", currentGroupIndex);
     url.searchParams.set("eIndex", currentEventIndex);
     url.searchParams.set("backEvent", backEventAmount.toString());

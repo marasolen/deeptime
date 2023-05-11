@@ -115,14 +115,8 @@ window.addEventListener('load', async () => {
         initializeDynamicAnimation();
     }
 
-    setTimeout(() => {
-        document.getElementById("escape-to-settings").style.display = "none";
-    }, 3000);
-
     setButtonFunctions();
     setContainerSizes();
-
-    startDownloadTimeout();
 
     const dataCopy = getSlicedData();
 
@@ -148,6 +142,11 @@ window.addEventListener('load', async () => {
     updateButtonStatuses();
 
     document.getElementById("loading").style.display = "none";
+    document.getElementById("escape-to-settings").style.display = "block";
+
+    setTimeout(() => {
+        document.getElementById("escape-to-settings").style.display = "none";
+    }, 3000);
 });
 
 window.addEventListener('resize', () => {

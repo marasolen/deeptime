@@ -6,60 +6,64 @@ let animationTimeout;
 
 let dynamicTimeout;
 
-let logDownloadTimeout;
-let logEvents = [];
-let lastLogDownload = new Date();
+let ipAddress;
 
-const downloadLogs = () => {
-    clearTimeout(logDownloadTimeout);
-
-    if (logEvents.length > 0) {
-        const logDate = new Date();
-
-        const element = document.createElement('a');
-        element.setAttribute('href', 'data:text/plain;charset=utf-8,' +
-            encodeURIComponent(JSON.stringify({
-                start: lastLogDownload.toISOString(),
-                end: logDate.toISOString(),
-                data: logEvents
-            })));
-
-        const fileName = "log-data_" +
-            lastLogDownload.toISOString()
-                .replaceAll(" ", "")
-                .replaceAll(":", "-") +
-            "---" +
-            logDate.toISOString()
-                .replaceAll(" ", "")
-                .replaceAll(":", "-") +
-            ".json";
-
-        element.setAttribute('download', fileName);
-
-        element.style.display = 'none';
-        document.body.appendChild(element);
-
-        element.click();
-
-        document.body.removeChild(element);
-
-        lastLogDownload = logDate;
-        logEvents = [];
-    }
-
-    startDownloadTimeout();
+const retrieveIPAddress = () => {
+    return new Promise((resolve, reject) => {
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", "https://deeptime.cs.ubc.ca/ip");
+        xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
+        xhr.send();
+    
+        xhr.onreadystatechange = (e) => {
+            if (xhr.readyState === 4) {
+                res = JSON.parse(xhr.responseText);
+                if (res.success) {
+                    resolve(res.ipaddress);
+                } else {
+                    reject("Server error: " + res.message);
+                }
+            }
+        };
+    });
 };
 
-const startDownloadTimeout = () => {
-    logDownloadTimeout = setTimeout(downloadLogs, 1000 * logInterval);
-};
-
-const storeEvent = (event) => {
-    logEvents.push({ datetime: (new Date()).toISOString(), event: event});
-
-    if (logEvents.length >= 1000) {
-        downloadLogs();
+const storeEvent = async (event) => {
+    if (!ipAddress) {
+        await retrieveIPAddress().then(result => {
+            ipAddress = result;
+        }).catch(error => {
+            console.log(error);
+        });
     }
+    
+    let logEvent = { 
+        datetime: (new Date()).toISOString(), 
+        event: event
+    };
+
+    if (ipAddress) {
+        logEvent.ipaddress = ipAddress;
+    }
+
+    if (user && pass) {
+        logEvent.user = user;
+        logEvent.pass = pass;
+    }
+
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", "https://deeptime.cs.ubc.ca/");
+    xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
+    xhr.send(JSON.stringify(logEvent));
+
+    xhr.onreadystatechange = (e) => {
+        if (xhr.readyState === 4) {
+            res = JSON.parse(xhr.responseText);
+            if (!res.success) {
+                reject("Server error: " + res.message);
+            }
+        }
+    };
 };
 
 const interactionHandler = (event) => {

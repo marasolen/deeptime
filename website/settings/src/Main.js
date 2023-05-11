@@ -91,9 +91,7 @@ const setInputFunctions = () => {
     });
 
     $('#username').on("change", () => {
-        console.log("here");
         user = $("#username").val();
-        console.log(user);
         updateURL();
     });
 

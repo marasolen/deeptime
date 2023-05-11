@@ -134,5 +134,9 @@ dist
 .pnp.*
 
 # no server code
-logging/server/src/keys.json
-logging/server/data
+server/src/keys.json
+server/data
+
+# no certificates
+localhost-key.pem
+localhost.pem
