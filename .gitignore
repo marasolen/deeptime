@@ -135,6 +135,7 @@ dist
 
 # no server code
 server/src/keys.json
+server/src/apiKey.json
 server/data
 
 # no certificates

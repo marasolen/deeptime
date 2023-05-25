@@ -11,4 +11,6 @@ const setMedia = (label, description, image) => {
     }
 
     document.getElementById("media-focus").innerHTML = innerHTML;
+
+    $('img').on('dragstart', function(event) { event.preventDefault(); });
 };

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <title>DELVE Settings</title>
+        <title>DeLVE Settings</title>
         <meta charset="UTF-8">
         <link rel="icon" href="../common/icon.jpg" />
         <link rel="stylesheet" href="../common/css/styles.css">
@@ -38,14 +38,14 @@
             <p>If every row in the anchor? column is false, the system will automatically choose event group
                 delimiters to be approximately powers of 10 (i.e. 10, 100, 1000). If you are unsure about which events should be delimiters,
                 you can use the system's choices to get an initial idea and then refine it on your own. You will want to
-                carefully design your dataset to work well with DELVE. This means that you should ensure that there are 3-12
+                carefully design your dataset to work well with DeLVE. This means that you should ensure that there are 3-12
                 events in each event group, there are at least a few event groups, and the event groups are approximately
                 divided into powers of 10.
             </p>
             <p>The default dataset is available
                 <a href="https://docs.google.com/spreadsheets/d/1WTxwt7RjEiNdJqSu6U2L1_CGpbsOwgUYQT3VyrdDoaI/edit#gid=0">here</a>
                 if you would like to see an example of how to format your dataset.</p>
-            <p>Once your dataset is in the right format, you will need to prepare it to be used by DELVE. First, 
+            <p>Once your dataset is in the right format, you will need to prepare it to be used by DeLVE. First, 
                 ensure that your Google Sheet is viewable by anyone with the link. Then, get
                 the ID of the Sheet. The ID is the part of the link after "/d/" and before the following "/", for
                 example the ID of the sample dataset is "1WTxwt7RjEiNdJqSu6U2L1_CGpbsOwgUYQT3VyrdDoaI". Enter the ID
@@ -59,6 +59,7 @@
                     id="datasetSubmit"
                     value="Submit Dataset">
             <p id="upload-status" style="color: red"></p>
+            <p>If you have any questions about this, please email Mara Solen at <a href="mailto:solen@cs.ubc.ca">solen@cs.ubc.ca</a>.</p>
         </div>
         <div id="settings">
             <h1>Interaction Settings</h1>
@@ -95,7 +96,7 @@
             <p>Password: <input type="text" id="password" style="width: 70%"></p>
         </div>
         <button class="interface-button enabled-button" id="welcome">Return to Welcome</button>
-        <button class="interface-button disabled-button" id="start">Start DELVE</button>
+        <button class="interface-button disabled-button" id="start">Start DeLVE</button>
 
         <!-- Libraries -->
         <script src="../common/src/libraries/jquery-3.6.3.min.js"></script>

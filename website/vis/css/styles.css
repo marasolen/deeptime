@@ -16,14 +16,104 @@
     z-index: 1;
 }
 
+#tool-title {
+    position: absolute;
+
+    width: 17%;
+    height: 5%;
+
+    top: -2%;
+    left: 0.5%;
+
+    align-content: center;
+    text-align: left;
+
+    font-weight: bold;
+}
+
+#dataset-title {
+    position: absolute;
+
+    width: 17%;
+    height: 12%;
+
+    top: 3%;
+    left: 0.5%;
+
+    align-content: center;
+    text-align: left;
+
+    font-weight: bold;
+}
+
+#event-preview {
+    position: absolute;
+
+    width: 15%;
+    height: 87%;
+
+    top: 12.4%;
+    left: 0%;
+}
+
+.event-preview-div {
+    position: absolute;
+
+    display: table;
+
+    width: 100%;
+
+    left: 0%;
+
+    background-color: rgb(230, 230, 230);
+}
+
+.event-preview-text {
+    overflow-wrap: break-word;
+    hyphens: auto;
+
+    position: relative;
+    text-align: center;
+    vertical-align: middle;
+
+    display: table-cell;
+
+    width: 40%;
+
+    left: 2%;
+
+    margin: 0;
+}
+
+.event-preview-img {
+    position: absolute;
+
+    max-height: 90%;
+    max-width: 40%;
+
+    top: 5%;
+    left: 50%;
+    margin: auto;
+}
+
+.event-preview-colour {
+    position: absolute;
+
+    width: 8%;
+    height: 100%;
+
+    top: 0%;
+    left: 92%;
+}
+
 #simple-timeline {
     position: absolute;
 
-    width: 100%;
+    width: 85%;
     height: 12%;
 
     top: 0%;
-    left: 0%;
+    left: 15%;
 }
 
 #separator {
@@ -42,26 +132,30 @@
 #tiered-timeline {
     position: absolute;
 
-    width: 100%;
+    width: 85%;
     height: 87%;
 
     top: 12%;
-    left: 0%;
+    left: 15%;
 }
 
 #media-focus {
     position: absolute;
 
-    width: 30%;
-    height: 40%;
+    width: 20%;
+    height: 36%;
 
-    top: 33%;
-    left: 5%;
+    top: 35%;
+    left: 18%;
 
     align-content: center;
     text-align: center;
     border: 5px dashed black;
     border-radius: 30px;
+}
+
+#media-description {
+    text-align: left;
 }
 
 #media-image {
@@ -77,7 +171,7 @@
     height: 8%;
 
     top: 77.5%;
-    left: 5%;
+    left: 18%;
 
     align-content: center;
     text-align: center;
@@ -86,49 +180,49 @@
 #pause-button {
     position: absolute;
 
-    width: 31.5%;
+    width: 22.7%;
     height: 8%;
 
     top: 88%;
-    left: 5%;
+    left: 18%;
 }
 
 #wait-button {
     position: absolute;
 
-    width: 31.5%;
+    width: 22.7%;
     height: 8%;
 
     top: 88%;
-    left: 5%;
+    left: 18%;
 }
 
 #next-button {
     position: absolute;
 
-    width: 19.5%;
-    height: 12%;
+    width: 22.7%;
+    height: 10%;
 
-    top: 84%;
-    left: 5%;
+    top: 82%;
+    left: 18%;
 }
 
 #reset-button {
     position: absolute;
 
-    width: 12%;
+    width: 11%;
     height: 5%;
 
-    top: 84%;
-    left: 25.5%;
+    top: 94%;
+    left: 18%;
 }
 
 #back-button {
     position: absolute;
 
-    width: 12%;
+    width: 11%;
     height: 5%;
 
-    top: 91%;
-    left: 25.5%;
+    top: 94%;
+    left: 29.6%;
 }

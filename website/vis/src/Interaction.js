@@ -11,21 +11,53 @@ let ipAddress;
 const retrieveIPAddress = () => {
     return new Promise((resolve, reject) => {
         let xhr = new XMLHttpRequest();
-        xhr.open("GET", "https://deeptime.cs.ubc.ca/ip");
+        xhr.open("GET", "ip");
         xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
         xhr.send();
     
         xhr.onreadystatechange = (e) => {
             if (xhr.readyState === 4) {
-                res = JSON.parse(xhr.responseText);
-                if (res.success) {
-                    resolve(res.ipaddress);
-                } else {
-                    reject("Server error: " + res.message);
+                try {
+                    res = JSON.parse(xhr.responseText);
+                    if (res.success) {
+                        resolve(res.ipaddress);
+                    } else {
+                        reject("Server error: " + res.message);
+                    }
+                } catch (_) {
+                    reject("Server error");
                 }
             }
         };
     });
+};
+
+const retrieveSheetName = async (id) => {
+    try {
+        const request = new Request("https://docs.google.com/spreadsheets/d/" + id + "/edit#gid=0", {
+            method: 'GET',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'text/html'
+            }
+        });
+        const response = await fetch(request);
+        const html = await response.text();
+        let title = '';
+        const titleMatches = html.match(/<title.*?>.*?<\/title>/gmi)||[];
+        if (titleMatches.length > 0) {
+            title = titleMatches[0];
+        }
+        if (title.search(/<title/gi) !== -1){
+            const titleText = title.substring(title.indexOf('>')+1);
+            const res = titleText.replace('</title>','');
+            return res.slice(0, -16);
+        }
+        return '';
+    } catch (err) {
+        console.error(`Failed to retrieve title with error: ${err}`);
+        return '';
+    }
 };
 
 const storeEvent = async (event) => {
@@ -35,6 +67,10 @@ const storeEvent = async (event) => {
         }).catch(error => {
             console.log(error);
         });
+    }
+
+    if (!ipAddress) {
+        return;
     }
     
     let logEvent = { 
@@ -52,7 +88,7 @@ const storeEvent = async (event) => {
     }
 
     let xhr = new XMLHttpRequest();
-    xhr.open("POST", "https://deeptime.cs.ubc.ca/");
+    xhr.open("POST", "");
     xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(logEvent));
 
@@ -91,7 +127,7 @@ const backEvent = () => {
     }
 
     const event = data[groupIndex].events[eventIndex];
-    timeline.nextTime(event);
+    timeline.updateData(event, null, animationDuration);
     tieredTimeline.setBoldedEvent(groupIndex, eventIndex);
     setMedia(event.label, event.description, event.image);
 
@@ -112,7 +148,7 @@ const nextEvent = () => {
         const numEventsInGroup = backGroupAmount === 0 ? currentEventIndex : data[currentGroupIndex - backGroupAmount].events.length - 1;
 
         const event = data[currentGroupIndex - backGroupAmount].events[numEventsInGroup - backEventAmount];
-        timeline.nextTime(event);
+        timeline.updateData(event, null, animationDuration);
         tieredTimeline.setBoldedEvent(currentGroupIndex - backGroupAmount, numEventsInGroup - backEventAmount);
         setMedia(event.label, event.description, event.image);
     } else if (currentEventIndex + 1 < data[currentGroupIndex].events.length) {
@@ -121,7 +157,7 @@ const nextEvent = () => {
         const dataCopy = getSlicedData();
 
         tieredTimeline.nextTime(dataCopy[currentGroupIndex], false);
-        timeline.nextTime(dataCopy[currentGroupIndex]);
+        timeline.updateData(dataCopy[currentGroupIndex], dataCopy, animationDuration);
     } else if (currentGroupIndex + 1 < data.length) {
         currentGroupIndex += 1;
         currentEventIndex = 0;
@@ -129,32 +165,7 @@ const nextEvent = () => {
         const dataCopy = getSlicedData();
 
         tieredTimeline.nextTime(dataCopy[currentGroupIndex], true);
-        timeline.nextTime({ label: dataCopy[currentGroupIndex].label, time: dataCopy[currentGroupIndex].time });
-    }
-
-    updateURL();
-};
-
-const nextEventGroup = () => {
-    tieredTimeline.clearBoldedEvent();
-    backGroupAmount = 0;
-    backEventAmount = 0;
-
-    if (currentEventIndex + 1 < data[currentGroupIndex].events.length) {
-        currentEventIndex = data[currentGroupIndex].events.length - 1;
-
-        const dataCopy = getSlicedData();
-
-        tieredTimeline.nextTime(dataCopy[currentGroupIndex], false);
-        timeline.nextTime(data[currentGroupIndex]);
-    } else if (currentGroupIndex + 1 < data.length) {
-        currentGroupIndex += 1;
-        currentEventIndex = data[currentGroupIndex].events.length - 1;
-
-        const dataCopy = getSlicedData();
-
-        tieredTimeline.nextTime(dataCopy[currentGroupIndex], true);
-        timeline.nextTime({ label: dataCopy[currentGroupIndex].label, time: dataCopy[currentGroupIndex].time });
+        timeline.updateData(dataCopy[currentGroupIndex], dataCopy, animationDuration);
     }
 
     updateURL();
@@ -176,13 +187,11 @@ const reset = () => {
     tieredTimeline.updateData(dataCopy);
     timeline.updateData(
         {
-            label: data[data.length - 1].label,
-            time: data[data.length - 1].time
-        },
-        {
             label: data[0].events[0].label,
             time: data[0].events[0].time
-        });
+        },
+        dataCopy,
+        0);
 };
 
 const startAnimation = (first) => {

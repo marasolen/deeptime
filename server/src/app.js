@@ -21,7 +21,8 @@ const app = express();
 
 app.use(express.json());
 
-const sitePath = "/home/solen/website/";
+//const sitePath = "/home/solen/website/";
+const sitePath = "C:\\Users\\maras\\Repos\\deeptime\\website\\";
 
 app.use(express.static(sitePath));
 

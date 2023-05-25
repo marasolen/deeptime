@@ -1,5 +1,6 @@
 const animationDuration = 2000;
 
+let eventPreview;
 let tieredTimeline;
 let timeline;
 
@@ -85,10 +86,13 @@ const setContainerSizes = () => {
     resizeStyles(mediaBoxConfig);
     resizeStyles(settingsConfig);
 
-    $(".interface-button").css("font-size", mediaBoxConfig.headerFontSize * window.innerHeight + "px");
+    $(".interface-button").css("font-size", 0.8 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
     $("#next-button").css("font-size", 1.3 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
     $(".interface-button").css("border-radius", 2 * mediaBoxConfig.borderWidth * window.innerHeight + "px");
     $(".interaction-description").css("font-size", mediaBoxConfig.headerFontSize * window.innerHeight + "px");
+    $(".event-preview-text").css("font-size", mediaBoxConfig.descriptionFontSize * window.innerHeight + "px");
+    $("#tool-title").css("font-size", mediaBoxConfig.headerFontSize * window.innerHeight + "px");
+    $("#dataset-title").css("font-size", 0.75 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
 };
 
 window.addEventListener('load', async () => {
@@ -106,6 +110,8 @@ window.addEventListener('load', async () => {
         changePage("settings");
         return;
     }
+
+    $("#dataset-title").text(await retrieveSheetName(sheetsId));
     
     if (interactionMode === "animated") {
         document.getElementById("interaction-container").style.display = "none";
@@ -120,6 +126,8 @@ window.addEventListener('load', async () => {
 
     const dataCopy = getSlicedData();
 
+    eventPreview = new EventPreview(eventPreviewConfig, data);
+
     tieredTimeline = new TieredTimeline(tieredTimelineConfig, dataCopy);
 
     const numEventsInGroup = backGroupAmount === 0 ? currentEventIndex : data[currentGroupIndex - backGroupAmount].events.length - 1;
@@ -128,6 +136,7 @@ window.addEventListener('load', async () => {
             label: data[data.length - 1].label,
             time: data[data.length - 1].time
         },
+        dataCopy,
         {
             label: data[currentGroupIndex - backGroupAmount].events[numEventsInGroup - backEventAmount].label,
             time: data[currentGroupIndex - backGroupAmount].events[numEventsInGroup - backEventAmount].time
@@ -143,6 +152,8 @@ window.addEventListener('load', async () => {
 
     document.getElementById("loading").style.display = "none";
     document.getElementById("escape-to-settings").style.display = "block";
+
+    $('img').on('dragstart', function(event) { event.preventDefault(); });
 
     setTimeout(() => {
         document.getElementById("escape-to-settings").style.display = "none";

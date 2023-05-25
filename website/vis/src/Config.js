@@ -4,8 +4,12 @@ const timelineConfig = {
         top:    0.0 / 100,
         right:  5.0 / 100,
         bottom: 0.0 / 100,
-        left:   5.0 / 100
+        left:   10.0 / 100
     }
+}
+
+const eventPreviewConfig = {
+    parentElement: "#event-preview",
 }
 
 const tieredTimelineConfig = {
@@ -14,7 +18,7 @@ const tieredTimelineConfig = {
         top:    16.3 / 100,
         right:   5.0 / 100,
         bottom:  1.8 / 100,
-        left:    5.0 / 100
+        left:    10.0 / 100
     }
 };
 

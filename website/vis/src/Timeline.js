@@ -6,9 +6,10 @@ class Timeline {
      * @param fullAge - number, length of full time period in years
      * @param currentTime - number, time to show on timeline in years
      */
-    constructor(config, fullAge, currentTime) {
+    constructor(config, fullAge, data, currentTime) {
         this.config = config;
         this.fullAge = fullAge;
+        this.data = data;
         this.currentTime = currentTime;
 
         this.configureVis();
@@ -20,7 +21,8 @@ class Timeline {
     configureVis() {
         const vis = this;
 
-        vis.xScale = d3.scaleLinear();
+        vis.xScale = d3.scaleLinear()
+            .domain([vis.fullAge.time, 0]);
 
         vis.numberFormatter = d3.format(",");
 
@@ -31,37 +33,44 @@ class Timeline {
 
         // Append group element that will contain our actual chart
         // and position it according to the given margin config
-        vis.chartSegment = vis.svg.append('g')
+        vis.chartSegments = vis.svg.append('g')
             .attr('class', 'chart');
         vis.chartAnnotations = vis.svg.append('g')
             .attr('class', 'chart');
 
-        vis.updateData();
+        vis.updateData(null, null, 0);
     }
 
     /**
      * Process the data into a usable format for the visualization. Set up the data side of the visualization.
      */
-    updateData(fullAge, currentTime) {
+    updateData(currentTime, data, animationDuration) {
         const vis = this;
-
-        if (fullAge) {
-            vis.fullAge = fullAge;
-        }
 
         if (currentTime) {
             vis.currentTime = currentTime;
         }
 
-        vis.xScale.domain([vis.fullAge.time, 0]);
+        if (data) {
+            vis.data = data;
+        }
 
-        vis.setupChart()
+        if (!vis.segments || data) {
+            vis.segments = [];
+            let lastEnd = 0;
+            vis.data.forEach((d, i) => {
+                vis.segments.push({ i: i, start: lastEnd, end: d.time });
+                lastEnd = d.time;
+            })
+        }
+
+        vis.setupChart(animationDuration);
     }
 
     /**
      * Set up the visual side of the visualization.
      */
-    setupChart() {
+    setupChart(animationDuration) {
         const vis = this;
 
         // Calculate inner chart size. Margin specifies the space around the actual chart.
@@ -83,22 +92,10 @@ class Timeline {
 
         // Append group element that will contain our actual chart
         // and position it according to the given margin config
-        vis.chartSegment
+        vis.chartSegments
             .attr('transform', `translate(${vis.margin.left}, ${vis.margin.top})`);
         vis.chartAnnotations
             .attr('transform', `translate(${vis.margin.left}, ${vis.margin.top})`);
-
-        vis.renderVis(0);
-    }
-
-    /**
-     * Move the "You are here" marker to the given time.
-     * @param currentTime - number, time to show on timeline in years
-     */
-    nextTime(currentTime) {
-        const vis = this;
-
-        vis.currentTime = currentTime;
 
         vis.renderVis(animationDuration);
     }
@@ -110,13 +107,16 @@ class Timeline {
     renderVis(animationDuration) {
         const vis = this;
 
+        const colourScale = d3.scaleOrdinal(d3.schemeCategory10);
+        let timePeriodColours = x => colourScale(x % 10);
+
         const barHeight = 0.2 * vis.height;
         const fontSize = 0.45 * barHeight;
 
-        vis.chartSegment.selectAll(".segment")
+        vis.chartSegments.selectAll(".background-segment")
             .data([null])
             .join("line")
-            .attr("class", "segment")
+            .attr("class", "background-segment")
             .attr("x1", 0)
             .attr("y1", vis.height / 2)
             .attr("x2", vis.width)
@@ -130,6 +130,7 @@ class Timeline {
             .join("rect")
             .transition()
             .duration(animationDuration)
+            .attr("id", "here-marker")
             .attr("class", "here-marker")
             .attr("x", d => vis.xScale(d.time) - 0.1 * barHeight)
             .attr("y", vis.height / 2 - 1.1 * barHeight / 2)
@@ -140,6 +141,31 @@ class Timeline {
             .attr("rx", 0.10 * barHeight)
             .attr("ry", 0.10 * barHeight)
             .attr("opacity", 1);
+
+        const hereMarker = vis.chartAnnotations.select("#here-marker");
+
+        vis.chartSegments.selectAll(".segment")
+            .data(vis.segments)
+            .join(
+                enter => {
+                    return enter.append("line")
+                        .attr("class", "segment")
+                        .attr("x1", hereMarker.empty() ? vis.width : +hereMarker.attr("x") + 0.1 * barHeight)
+                        .attr("y1", vis.height / 2)
+                        .attr("x2", hereMarker.empty() ? vis.width : +hereMarker.attr("x") + 0.1 * barHeight)
+                        .attr("y2", vis.height / 2)
+                        .style("stroke-width", barHeight + "px")
+                        .attr("stroke-opacity", 1);
+                })
+            .style("stroke", d => timePeriodColours(d.i))
+            .attr("y1", vis.height / 2)
+            .attr("y2", vis.height / 2)
+            .style("stroke-width", barHeight + "px")
+            .attr("stroke-opacity", 1)
+            .transition()
+            .duration(animationDuration)
+            .attr("x1", d => vis.xScale(d.start))
+            .attr("x2", d => vis.xScale(d.end))
 
         vis.chartAnnotations.selectAll(".here-text")
             .data([vis.currentTime])

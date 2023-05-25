@@ -46,6 +46,11 @@ class TieredTimeline {
             .append('svg')
             .attr('class', 'drawing-area');
 
+        vis.chartTesting = vis.svg.append('g')
+            .attr('class', 'chart')
+            .append("text")
+            .attr("id", "text-tester")
+            .attr("opacity", 0);
         vis.chartAreas = vis.svg.append('g')
             .attr('class', 'chart');
         vis.chartStandardLines = vis.svg.append('g')
@@ -223,7 +228,7 @@ class TieredTimeline {
             .range([vis.height, 0]);
 
         vis.data.forEach((d, i) => {
-            d.xScale.range([i < vis.data.length - 1 ? vis.width / 2 : 0, vis.width]);
+            d.xScale.range([i < vis.data.length - 1 ? 0.4 * vis.width : 0, vis.width]);
         });
 
         const areaAnchorSets = [];
@@ -232,7 +237,7 @@ class TieredTimeline {
             const areaAnchorSet = [];
             vis.data.slice(i, i + numAreaExtensions).forEach((f, j) => {
                 areaAnchorSet.push({ time: d.time, x: f.xScale(f.time), y: vis.yScale(f.time),
-                    w: j + i === vis.data.length - 1 ? vis.width : vis.width / 2 });
+                    w: j + i === vis.data.length - 1 ? vis.width : 0.6 * vis.width });
             });
 
             areaAnchorSets.push(areaAnchorSet);
@@ -292,12 +297,13 @@ class TieredTimeline {
 
     /**
      * Bind data to visual elements.
-     * @param animationDuration - number, the length of the animation in ms
+     * @param localAnimationDuration - number, the length of the animation in ms
      */
-    async renderVis(animationDuration) {
+    async renderVis(localAnimationDuration) {
         const vis = this;
 
-        let timePeriodColours = d3.scaleOrdinal(d3.schemeCategory10);
+        const colourScale = d3.scaleOrdinal(d3.schemeCategory10);
+        let timePeriodColours = x => colourScale(x % 10);
 
         const connectorLineWidth = 0.1 / 100 * vis.width;
 
@@ -305,7 +311,7 @@ class TieredTimeline {
             .data(vis.areas)
             .join("path")
             .transition()
-            .duration(animationDuration)
+            .duration(localAnimationDuration)
             .attr("class", "area")
             .attr("d", a => vis.areaGen(a))
             .attr("fill", (_, i) => timePeriodColours(i))
@@ -318,7 +324,7 @@ class TieredTimeline {
             .data(vis.eventConnectors)
             .join("line")
             .transition()
-            .duration(animationDuration)
+            .duration(localAnimationDuration)
             .attr("class", "event-connector")
             .attr("x1", ec => vis.data[ec.early.group].xScale(vis.data[ec.early.group].events[ec.early.element].time))
             .attr("y1", ec => vis.yScale(vis.data[ec.early.group].time))
@@ -330,12 +336,32 @@ class TieredTimeline {
 
         const archiveLineHeight = 1.5 / 100 * vis.height;
         const archiveFontSize =   1.3 / 100 * vis.height;
-        const archiveWWidth =     1.1 / 100 * vis.height;
 
         const expandingLineHeight = 4.5 / 100 * vis.height;
         const expandingFontSize =   1.7 / 100 * vis.height;
-        const expandingWWidth =     1.3 / 100 * vis.height;
 
+        const clickHandler = (_, d) => {
+            const nextBackGroupAmount = vis.data.length - 1 - d.group;
+            const numNonCopyEvents = vis.data[vis.data.length - 1 - nextBackGroupAmount].events.filter(e => !e.copy).length;
+            const numEventsInGroup = nextBackGroupAmount === 0 ? currentEventIndex : numNonCopyEvents - 1;
+            const nextBackEventAmount = numEventsInGroup - d.index;
+
+            if (document.getElementById("automation-happening").style.display === "none" &&
+                document.getElementById("automation-begins-warning").style.display === "none" &&
+                (backGroupAmount !== nextBackGroupAmount || backEventAmount !== nextBackEventAmount)) {
+                backGroupAmount = nextBackGroupAmount;
+                backEventAmount = nextBackEventAmount;
+    
+                const event = data[d.group].events[d.index];
+                timeline.updateData(event, null, animationDuration);
+                vis.setBoldedEvent(d.group, d.index);
+                setMedia(event.label, event.description, event.image);
+    
+                updateURL();
+
+                interactionHandler("direct: event");
+            }
+        };
 
         vis.data.forEach((d, j) => {
             const rows = Array.from(Array(numArchiveLabelLevels)).map(_ => []);
@@ -344,8 +370,12 @@ class TieredTimeline {
                     return;
                 }
 
+                vis.chartTesting
+                    .style("font-size", archiveFontSize + "px")
+                    .text(_ => e.label);
+
                 const xPosition = d.xScale(e.time);
-                const width = archiveWWidth * e.label.length;
+                const width = 1.1 * vis.chartTesting.node().getBBox().width;
                 const leftBound = xPosition - width / 2;
                 const rightBound = xPosition + width / 2;
                 for (const row of rows) {
@@ -373,7 +403,7 @@ class TieredTimeline {
                 .data(d.segments)
                 .join("line")
                 .transition()
-                .duration(animationDuration)
+                .duration(localAnimationDuration)
                 .attr("class", "segments-" + j)
                 .attr("x1", s => d.xScale(s.end))
                 .attr("y1", _ => vis.yScale(d.time))
@@ -386,8 +416,9 @@ class TieredTimeline {
             vis.chartAnnotations.selectAll(".event-line-" + j)
                 .data(d.events.filter(d => !d.copy).slice(0, sliceValue))
                 .join("line")
+                .on("click", clickHandler)
                 .transition()
-                .duration(animationDuration)
+                .duration(localAnimationDuration)
                 .attr("class", "event-line-" + j)
                 .attr("x1", e => d.xScale(e.time))
                 .attr("y1", _ => vis.yScale(d.time))
@@ -400,8 +431,9 @@ class TieredTimeline {
             vis.chartAnnotations.selectAll(".event-marker-" + j)
                 .data(d.events)
                 .join("rect")
+                .on("click", clickHandler)
                 .transition()
-                .duration(animationDuration)
+                .duration(localAnimationDuration)
                 .attr("class", "event-marker-" + j)
                 .attr("x", e => d.xScale(e.time) - 0.3 * archiveLineHeight)
                 .attr("y", _ => vis.yScale(d.time) - 0.5 * 1.1 * archiveLineHeight)
@@ -416,8 +448,11 @@ class TieredTimeline {
             vis.chartAnnotations.selectAll(".event-text-" + j)
                 .data(d.events.filter(d => !d.copy).slice(0, sliceValue))
                 .join("text")
+                .attr("real-x", e => d.xScale(e.time))
+                .attr("real-y", e => vis.yScale(d.time) - (e.labelLevel + 1.5) * 1.1 * archiveFontSize)
+                .on("click", clickHandler)
                 .transition()
-                .duration(animationDuration)
+                .duration(localAnimationDuration)
                 .attr("id", d => j === vis.data.length - 1 ? "" : "event-text-" + d.group + "-" + d.index)
                 .attr("class", "event-text event-text-" + j)
                 .attr("x", e => d.xScale(e.time))
@@ -430,8 +465,11 @@ class TieredTimeline {
             vis.chartAnnotations.selectAll(".event-group-label-" + j)
                 .data([d])
                 .join("text")
+                .on("click", (event, d) => sliceValue < 0 ? clickHandler(event, d) : null)
+                .attr("real-x", e => d.xScale(e.time) - expandingFontSize)
+                .attr("real-y", e => vis.yScale(d.time) - 0.2 * expandingFontSize)
                 .transition()
-                .duration(animationDuration)
+                .duration(localAnimationDuration)
                 .attr("id", d => j === vis.data.length - 1 ? "" : "event-text-" + d.group + "-" + d.index)
                 .attr("class", "event-text event-group-label-" + j)
                 .attr("x", e => d.xScale(e.time) - expandingFontSize)
@@ -444,8 +482,9 @@ class TieredTimeline {
             vis.chartAnnotations.selectAll(".event-group-time-" + j)
                 .data([d])
                 .join("text")
+                .on("click", (event, d) => sliceValue < 0 ? clickHandler(event, d) : null)
                 .transition()
-                .duration(animationDuration)
+                .duration(localAnimationDuration)
                 .attr("id", d => "event-years-" + d.group + "-" + d.index)
                 .attr("class", "event-group-time-" + j)
                 .attr("x", e => d.xScale(e.time) - expandingFontSize)
@@ -489,8 +528,16 @@ class TieredTimeline {
                 return;
             }
 
+            const labelWidth = 1.1 * vis.chartTesting
+                .style("font-size", expandingFontSize + "px")
+                .text(_ => e.label).node().getBBox().width;
+
+            const numberWidth = 1.1 * vis.chartTesting
+                .style("font-size", expandingFontSize + "px")
+                .text(_ => vis.numberFormatter(e.time).length).node().getBBox().width;
+
             const xPosition = vis.main.xScale(e.time);
-            const width = expandingWWidth * Math.max(e.label.length, vis.numberFormatter(e.time).length + 6);
+            const width = Math.max(labelWidth, numberWidth);
             const leftBound = xPosition - width / 2;
             const rightBound = xPosition + width / 2;
             for (const row of mainRows) {
@@ -514,7 +561,7 @@ class TieredTimeline {
             .style("stroke-width", expandingLineHeight + "px")
             .style("stroke", (_, i) => timePeriodColours(i))
             .transition()
-            .duration(animationDuration)
+            .duration(localAnimationDuration)
             .attr("x1", s => vis.main.xScale(s.end))
             .attr("y1", _ => vis.yScale(vis.main.time))
             .attr("x2", s => vis.main.xScale(s.start))
@@ -523,8 +570,9 @@ class TieredTimeline {
         vis.chartAnnotations.selectAll(".event-line-main")
             .data(vis.main.events)
             .join("line")
+            .on("click", clickHandler)
             .transition()
-            .duration(animationDuration)
+            .duration(localAnimationDuration)
             .attr("class", "event-line-main")
             .attr("x1", e => vis.main.xScale(e.time))
             .attr("y1", _ => vis.yScale(vis.main.time))
@@ -539,8 +587,9 @@ class TieredTimeline {
             .join("rect")
             .attr("height", 1.1 * expandingLineHeight)
             .attr("y", _ => vis.yScale(vis.main.time) - 1.1 * expandingLineHeight / 2)
+            .on("click", clickHandler)
             .transition()
-            .duration(animationDuration)
+            .duration(localAnimationDuration)
             .attr("class", "event-marker-main")
             .attr("x", e => vis.main.xScale(e.time) - 0.125 * expandingLineHeight)
             .attr("width", 0.25 * expandingLineHeight)
@@ -558,8 +607,11 @@ class TieredTimeline {
                         .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize - expandingFontSize);
                 })
             .style("font-size", expandingFontSize + "px")
+            .attr("real-y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize - expandingFontSize)
+            .attr("real-x", e => vis.main.xScale(e.time))
+            .on("click", clickHandler)
             .transition()
-            .duration(animationDuration)
+            .duration(localAnimationDuration)
             .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize - expandingFontSize)
             .attr("x", e => vis.main.xScale(e.time))
             .attr("id", d => (d.hidden || d.copy) ? "" : "event-text-" + d.group + "-" + d.index)
@@ -576,8 +628,9 @@ class TieredTimeline {
                         .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize);
                 })
             .style("font-size", expandingFontSize + "px")
+            .on("click", clickHandler)
             .transition()
-            .duration(animationDuration)
+            .duration(localAnimationDuration)
             .attr("y", e => vis.yScale(vis.main.time) - (e.labelLevel + 1) * 2 * expandingFontSize)
             .attr("x", e => vis.main.xScale(e.time))
             .attr("id", d => "event-years-" + d.group + "-" + d.index)
@@ -606,7 +659,7 @@ class TieredTimeline {
             .attr("ry", 0.10 * expandingLineHeight)
             .attr("opacity", e => e.hidden ? 0 : e.copy ? 0.4 : 1)
             .transition()
-            .duration(animationDuration)
+            .duration(localAnimationDuration)
             .attr("height", todayLineLength);
 
         vis.chartAnnotations.selectAll(".end-texts")
@@ -618,7 +671,7 @@ class TieredTimeline {
             .style("font-size", expandingFontSize + "px")
             .text(d => d.label)
             .transition()
-            .duration(animationDuration)
+            .duration(localAnimationDuration)
             .attr("x", (d, i) => vis.main.xScale(d.time) + 3 * expandingFontSize)
             .attr("y", todayLineLength / 2 - 1.7 * expandingFontSize);
 
@@ -631,7 +684,7 @@ class TieredTimeline {
             .style("font-size", expandingFontSize + "px")
             .text(d => vis.numberFormatter(d.time) + " years")
             .transition()
-            .duration(animationDuration)
+            .duration(localAnimationDuration)
             .attr("x", (d, i) => vis.main.xScale(d.time) + 3 * expandingFontSize)
             .attr("y", todayLineLength / 2 - 0.2 * expandingFontSize);
 
@@ -650,7 +703,7 @@ class TieredTimeline {
 
     setBoldedEvent(group, event) {
         const vis = this;
-
+        
         vis.clearBoldedEvent();
         const selectedEvent = vis.chartAnnotations.select("#event-text-" + group + "-" + event);
         const isGroupLabel = selectedEvent.classed("event-group-label-" + group);
@@ -670,12 +723,14 @@ class TieredTimeline {
             .attr("rx", vis.width / 200)
             .attr("ry", vis.width / 200)
             .transition()
-            .duration(animationDuration / 4)
+            .duration(animationDuration / 2)
             .attr("opacity", 1)
             .attr("width", width)
             .attr("height", height)
-            .attr("x", selectedEvent.attr("x") - width / (isGroupLabel ? 1.1 : 2))
-            .attr("y", selectedEvent.attr("y") - ((group === vis.data.length - 1) || isGroupLabel ? 0.9 : 1.3) * height / 2)
+            .attr("x", selectedEvent.attr("real-x") - width / (isGroupLabel ? 1.1 : 2))
+            .attr("y", selectedEvent.attr("real-y") - ((group === vis.data.length - 1) || isGroupLabel ? 0.9 : 1.3) * height / 2)
+            .attr("real-x", selectedEvent.attr("real-x") - width / (isGroupLabel ? 1.1 : 2))
+            .attr("real-y", selectedEvent.attr("real-y") - ((group === vis.data.length - 1) || isGroupLabel ? 0.9 : 1.3) * height / 2);
     }
 
     checkCollision(row, left, right) {
