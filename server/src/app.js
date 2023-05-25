@@ -50,7 +50,7 @@ app.get('/ip', (request, response) => {
     }
 });
 
-app.post('/', (request, response) => {
+app.post('/log', (request, response) => {
     const newData = request.body;
 
     let user;

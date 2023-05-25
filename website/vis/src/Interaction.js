@@ -11,7 +11,7 @@ let ipAddress;
 const retrieveIPAddress = () => {
     return new Promise((resolve, reject) => {
         let xhr = new XMLHttpRequest();
-        xhr.open("GET", "ip");
+        xhr.open("GET", "https://deeptime.cs.ubc.ca/ip");
         xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
         xhr.send();
     
@@ -88,7 +88,7 @@ const storeEvent = async (event) => {
     }
 
     let xhr = new XMLHttpRequest();
-    xhr.open("POST", "");
+    xhr.open("POST", "https://deeptime.cs.ubc.ca/log");
     xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
     xhr.send(JSON.stringify(logEvent));
 
