@@ -2,6 +2,7 @@ let data;
 
 const errorMessage = "Error with provided Google Sheets ID. Check that it is a valid ID and that the" +
     "Sheet is viewable by anyone with the link.";
+const successMessage = "The dataset was successfully parsed."
 
 const getTimeInYears = (unit, value) => {
     switch (unit) {
@@ -27,10 +28,13 @@ const processData = async (sheetsId) => {
     }).catch(error => {
         console.log(error);
         uploadStatus.text(errorMessage);
+        uploadStatus.css("color", "red");
+        return null;
     });
 
     if (!events || events.length === 0) {
         uploadStatus.text(errorMessage);
+        uploadStatus.css("color", "red");
         return null;
     }
 
@@ -99,6 +103,9 @@ const processData = async (sheetsId) => {
         });
     });
 
+    uploadStatus.text(successMessage);
+    uploadStatus.css("color", "green");
+
     return reals;
 };
 
@@ -111,4 +118,34 @@ const getSlicedData = () => {
     dataCopy[currentGroupIndex].image = dataCopy[currentGroupIndex].events[currentEventIndex].image;
 
     return dataCopy;
+};
+
+const getData = async () => {
+    const sheetsId = await loadURLSettings(processData);
+    if (!sheetsId) {
+        return;
+    }
+
+    data = await processData(sheetsId);
+    if (!data) {
+        return;
+    }
+
+    if (currentGroupIndex >= data.length) {
+        currentGroupIndex = data.length - 1;
+    }
+
+    if (currentEventIndex >= data[currentGroupIndex].events.length) {
+        currentEventIndex = data[currentGroupIndex].events.length - 1;
+    }
+
+    if (backGroupAmount > currentGroupIndex) {
+        backGroupAmount = currentGroupIndex;
+    }
+
+    if (backEventAmount > currentEventIndex) {
+        backEventAmount = backGroupAmount === 0 ? currentEventIndex : (data[currentGroupIndex - backGroupAmount].events.length - 1);
+    }
+
+    updateURL();
 };

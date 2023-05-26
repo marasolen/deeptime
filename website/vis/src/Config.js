@@ -25,23 +25,9 @@ const mediaBoxConfig = {
     descriptionFontSize: 1.3 / 100
 }
 
-const uploadBoxConfig = {
-    parentElement: "#upload",
+const settingsConfig = {
+    parentElement: "#escape-to-settings",
     borderWidth:         0.4 / 100,
-    headerFontSize:      3.0 / 100,
-    descriptionFontSize: 1.5 / 100
-}
-
-const instructionsBoxConfig = {
-    parentElement: "#instructions",
-    borderWidth:         0.4 / 100,
-    headerFontSize:      3.0 / 100,
-    descriptionFontSize: 1.5 / 100
-}
-
-const settingsBoxConfig = {
-    parentElement: "#settings",
-    borderWidth:         0.4 / 100,
-    headerFontSize:      3.0 / 100,
-    descriptionFontSize: 1.5 / 100
+    headerFontSize:      2.8 / 100,
+    descriptionFontSize: 1.3 / 100
 }

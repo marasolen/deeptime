@@ -1,71 +1,69 @@
 let settingsOpen = true;
 
-let pressBackEvent = false;
-let pressNextEvent = false;
-let pressNextEventGroup = false;
-let pressResetDataset = false;
 let pressOpenSettings = false;
 
 let animationTimeout;
 
 let dynamicTimeout;
 
-let logDownloadTimeout;
-let logEvents = [];
-let lastLogDownload = new Date();
+let ipAddress;
 
-const downloadLogs = () => {
-    clearTimeout(logDownloadTimeout);
+const retrieveIPAddress = () => {
+    return new Promise((resolve, reject) => {
+        let xhr = new XMLHttpRequest();
+        xhr.open("GET", "https://deeptime.cs.ubc.ca/ip");
+        xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
+        xhr.send();
+    
+        xhr.onreadystatechange = (e) => {
+            if (xhr.readyState === 4) {
+                res = JSON.parse(xhr.responseText);
+                if (res.success) {
+                    resolve(res.ipaddress);
+                } else {
+                    reject("Server error: " + res.message);
+                }
+            }
+        };
+    });
+};
 
-    if (logEvents.length > 0) {
-        const logDate = new Date();
+const storeEvent = async (event) => {
+    if (!ipAddress) {
+        await retrieveIPAddress().then(result => {
+            ipAddress = result;
+        }).catch(error => {
+            console.log(error);
+        });
+    }
+    
+    let logEvent = { 
+        datetime: (new Date()).toISOString(), 
+        event: event
+    };
 
-        const element = document.createElement('a');
-        element.setAttribute('href', 'data:text/plain;charset=utf-8,' +
-            encodeURIComponent(JSON.stringify({
-                start: lastLogDownload.toISOString(),
-                end: logDate.toISOString(),
-                data: logEvents
-            })));
-
-        const fileName = "log-data_" +
-            lastLogDownload.toISOString()
-                .replaceAll(" ", "")
-                .replaceAll(":", "-") +
-            "---" +
-            logDate.toISOString()
-                .replaceAll(" ", "")
-                .replaceAll(":", "-") +
-            ".json";
-
-        element.setAttribute('download', fileName);
-
-        element.style.display = 'none';
-        document.body.appendChild(element);
-
-        element.click();
-
-        document.body.removeChild(element);
-
-        lastLogDownload = logDate;
-        logEvents = [];
+    if (ipAddress) {
+        logEvent.ipaddress = ipAddress;
     }
 
-    startDownloadTimeout();
-};
+    if (user && pass) {
+        logEvent.user = user;
+        logEvent.pass = pass;
+    }
 
-const startDownloadTimeout = () => {
-    logDownloadTimeout = setTimeout(downloadLogs, 1000 * logInterval);
-};
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST", "https://deeptime.cs.ubc.ca/");
+    xhr.setRequestHeader("Content-type", "application/json;charset=UTF-8");
+    xhr.send(JSON.stringify(logEvent));
 
-const storeEvent = (event) => {
-    if (shouldLogEvents) {
-        logEvents.push({ datetime: (new Date()).toISOString(), event: event});
-
-        if (logEvents.length >= 1000) {
-            downloadLogs();
+    xhr.onreadystatechange = (e) => {
+        if (xhr.readyState === 4) {
+            res = JSON.parse(xhr.responseText);
+            if (!res.success) {
+                reject("Server error: " + res.message);
+            }
         }
-    }
+    };
 };
 
 const interactionHandler = (event) => {
@@ -185,20 +183,6 @@ const reset = () => {
             label: data[0].events[0].label,
             time: data[0].events[0].time
         });
-};
-
-const toggleSettings = () => {
-    clearTimeout(dynamicTimeout);
-    clearTimeout(animationTimeout);
-    settingsOpen = !settingsOpen;
-    if (!settingsOpen) {
-        if (interactionMode === "animated") {
-            startAnimation(true);
-        } else if (interactionMode === "dynamic") {
-            initializeDynamicAnimation();
-        }
-    }
-    document.getElementById("settings-instructions").style.display = settingsOpen ? "block" : "none";
 };
 
 const startAnimation = (first) => {

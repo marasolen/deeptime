@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>DELVE</title>
+        <meta charset="UTF-8">
+        <link rel="icon" href="../common/icon.jpg" />
+        <link rel="stylesheet" href="../common/css/styles.css">
+        <link rel="stylesheet" href="css/styles.css">
+
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <!-- Loading Screen -->
+        <div id="loading">
+            <h1>Loading...</h1>
+        </div>
+        
+        <!-- Dashboard -->
+        <div id="interaction-container">
+            <h1 id="welcome-message">Welcome to DELVE! Would you like to explore the default dataset or upload a custom one?</h1>
+            <button class="interface-button enabled-button" id="default">Default Dataset</button>
+            <button class="interface-button enabled-button" id="custom">Custom Dataset</button>
+        </div>
+
+        <!-- Libraries -->
+        <script src="../common/src/libraries/jquery-3.6.3.min.js"></script>
+
+        <!-- Source Code -->
+        <script src="../common/src/Utility.js" type="text/javascript"></script>
+        <script src="src/Main.js" type="text/javascript"></script>
+    </body>
+</html>
