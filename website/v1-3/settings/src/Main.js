@@ -33,7 +33,7 @@ const setInputFunctions = () => {
     };
     document.getElementById("start").onclick = async () => {
         if (data) {
-            changePage("../");
+            changePage("vis");
         }
     };
 

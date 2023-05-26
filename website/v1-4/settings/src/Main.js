@@ -24,7 +24,7 @@ const updatePage = () => {
 
     ["animation-event", "animation-event-group"].forEach(style => {
         $('input:radio[name=animation-style]').filter('[id=' + style + ']').prop("checked", animationMode === style);
-    })
+    });
 }
 
 const setInputFunctions = () => {
@@ -33,7 +33,7 @@ const setInputFunctions = () => {
     };
     document.getElementById("start").onclick = async () => {
         if (data) {
-            changePage("../");
+            changePage("vis");
         }
     };
 
