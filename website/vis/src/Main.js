@@ -88,8 +88,10 @@ const setContainerSizes = () => {
 
     $(".interface-button").css("font-size", 0.8 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
     $("#next-button").css("font-size", 1.3 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
+    $("#wait-button").css("font-size", 1.3 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
+    $("#pause-button").css("font-size", 1.3 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
     $(".interface-button").css("border-radius", 2 * mediaBoxConfig.borderWidth * window.innerHeight + "px");
-    $(".interaction-description").css("font-size", mediaBoxConfig.headerFontSize * window.innerHeight + "px");
+    $(".interaction-description").css("font-size", 0.75 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
     $(".event-preview-text").css("font-size", mediaBoxConfig.descriptionFontSize * window.innerHeight + "px");
     $("#tool-title").css("font-size", mediaBoxConfig.headerFontSize * window.innerHeight + "px");
     $("#dataset-title").css("font-size", 0.75 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");

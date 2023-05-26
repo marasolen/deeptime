@@ -67,7 +67,7 @@ class TieredTimeline {
      * Process the data into a usable format for the visualization. Set up the data side of the visualization.
      * @param data - object, unprocessed data
      */
-    updateData(data, zipContent) {
+    updateData(data, animationDuration) {
         const vis = this;
 
         if (vis.data) {
@@ -76,10 +76,6 @@ class TieredTimeline {
 
         if (data) {
             vis.data = data;
-        }
-
-        if (zipContent) {
-            vis.zipContent = zipContent;
         }
 
         let min = vis.data[0].time;
@@ -107,7 +103,7 @@ class TieredTimeline {
         vis.yScale
             .domain([vis.min, vis.max]);
 
-        vis.setupChart(0)
+        vis.setupChart(animationDuration ? animationDuration : 0)
     }
 
     /**
@@ -521,6 +517,8 @@ class TieredTimeline {
                 .join("text");
         }
 
+        const generateUniqueIdForEvent = (e) => e.label + "--" + e.time;
+
         const mainRows = Array.from(Array(numArchiveLabelLevels)).map(_ => []);
         vis.main.events.forEach(e => {
             if (e.copy) {
@@ -568,7 +566,7 @@ class TieredTimeline {
             .attr("y2", _ => vis.yScale(vis.main.time));
 
         vis.chartAnnotations.selectAll(".event-line-main")
-            .data(vis.main.events)
+            .data(vis.main.events, generateUniqueIdForEvent)
             .join("line")
             .on("click", clickHandler)
             .transition()
@@ -583,7 +581,7 @@ class TieredTimeline {
             .attr("stroke-opacity", e => (e.hidden || e.copy) ? 0 : 0.2);
 
         vis.chartAnnotations.selectAll(".event-marker-main")
-            .data(vis.main.events)
+            .data(vis.main.events, generateUniqueIdForEvent)
             .join("rect")
             .attr("height", 1.1 * expandingLineHeight)
             .attr("y", _ => vis.yScale(vis.main.time) - 1.1 * expandingLineHeight / 2)
@@ -600,7 +598,7 @@ class TieredTimeline {
             .attr("opacity", e => e.hidden ? 0 : e.copy ? 0.4 : 1);
 
         vis.chartAnnotations.selectAll(".event-text-main")
-            .data(vis.main.events)
+            .data(vis.main.events, generateUniqueIdForEvent)
             .join(
                 enter => {
                     return enter.append("text")
@@ -621,7 +619,7 @@ class TieredTimeline {
             .text(e => e.label);
 
         vis.chartAnnotations.selectAll(".event-years-main")
-            .data(vis.main.events)
+            .data(vis.main.events, generateUniqueIdForEvent)
             .join(
                 enter => {
                     return enter.append("text")
