@@ -21,22 +21,9 @@ const app = express();
 
 app.use(express.json());
 
-//const sitePath = "/home/solen/website/";
-const sitePath = "C:\\Users\\maras\\Repos\\deeptime\\website\\";
+const sitePath = "/home/solen/website/";
 
 app.use(express.static(sitePath));
-
-app.get('/', (_, response) => {
-    response.status(200).sendFile(sitePath + "vis/index.html");
-});
-
-app.get('/settings', (_, response) => {
-    response.status(200).sendFile(sitePath + "settings/index.html");
-});
-
-app.get('/welcome', (_, response) => {
-    response.status(200).sendFile(sitePath + "welcome/index.html");
-});
 
 app.get('/ip', (request, response) => {
     const forwardedIpsStr = request.header('x-forwarded-for');
@@ -65,12 +52,12 @@ app.post('/log', (request, response) => {
         user = "default";
     }
 
-    if (!("datetime" in newData && "event" in newData && "ipaddress" in newData)) {
+    if (!("datetime" in newData && "event" in newData && "ipaddress" in newData && "version" in newData)) {
         response.status(400).json({ success: false, message: "invalid data" });
         return;
     }
 
-    data.push({ user: user, datetime: newData.datetime, event: newData.event, ipaddress: newData.ipaddress });
+    data.push({ user: user, datetime: newData.datetime, event: newData.event, ipaddress: newData.ipaddress, version: newData.version });
     dataToWrite = true;
     response.status(200).json({ success: true, message: 'data received' });
 });
