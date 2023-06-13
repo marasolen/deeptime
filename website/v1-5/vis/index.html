@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>DeLVE</title>
+        <meta charset="UTF-8">
+        <link rel="icon" href="../common/icon.jpg" />
+        <link rel="stylesheet" href="../common/css/styles.css">
+        <link rel="stylesheet" href="css/styles.css">
+
+        <!-- Font -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <!-- Loading Screen -->
+        <div id="loading">
+            <h1>Loading...</h1>
+        </div>
+        
+        <!-- Dashboard -->
+        <div id="escape-to-settings" style="display: none;"><h1>Press escape to modify settings.</h1></div>
+        
+        <div id="simple-timeline"></div>
+        <div id="separator"></div>
+        <div id="tiered-timeline"></div>
+        <div id="media-focus">
+            <h1 id="media-title"></h1>
+            <p id="media-description"></p>
+            <img id="media-image">
+        </div>
+
+        <div id="automation-begins-warning" style="display: none;">
+            <div class="interaction-description">
+                <p>Are you still there?</p>
+            </div>
+            <button class="interface-button enabled-button" id="wait-button">I'm Still Here!</button>
+        </div>
+
+        <div id="automation-happening" style="display: none;">
+            <div class="interaction-description">
+                <p>Click here to get started!</p>
+            </div>
+            <button class="interface-button enabled-button" id="pause-button">Let Me Interact!</button>
+        </div>
+
+        <div id="interaction-container">
+            <button class="interface-button enabled-button" id="next-button">Explore the Past</button>
+            <button class="interface-button enabled-button" id="reset-button">Reset to Today</button>
+            <button class="interface-button enabled-button" id="back-button">Revisit Events</button>
+        </div>
+
+        <!-- Libraries -->
+        <script src="../common/src/libraries/d3.v7.min.js"></script>
+        <script src="../common/src/libraries/jquery-3.6.3.min.js"></script>
+        <script src="../common/src/libraries/public-google-sheets-parser.js"></script>
+
+        <!-- Source Code -->
+        <script src="src/Config.js" typ="text/javascript"></script>
+        <script src="src/MediaManager.js" typ="text/javascript"></script>
+        <script src="src/EventPreview.js" type="text/javascript"></script>
+        <script src="src/Timeline.js" type="text/javascript"></script>
+        <script src="src/TieredTimeline.js" type="text/javascript"></script>
+        <script src="../common/src/Utility.js" type="text/javascript"></script>
+        <script src="../common/src/SettingManagement.js" type="text/javascript"></script>
+        <script src="../common/src/DataOperations.js" type="text/javascript"></script>
+        <script src="src/Interaction.js" type="text/javascript"></script>
+        <script src="src/Main.js" type="text/javascript"></script>
+    </body>
+</html>
