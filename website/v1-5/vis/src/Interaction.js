@@ -87,7 +87,7 @@ const storeEvent = async (event) => {
         logEvent.pass = pass;
     }
 
-    logEvent.version = "v1.4";
+    logEvent.version = "v1.5";
 
     let xhr = new XMLHttpRequest();
     xhr.open("POST", "https://deeptime.cs.ubc.ca/log");
