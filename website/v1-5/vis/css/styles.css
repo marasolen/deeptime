@@ -39,6 +39,12 @@
     display: inline;
     margin: 0;
     padding: 0;
+    color: #222222;
+}
+
+#btitle b {
+    font-weight: 900;
+    color: black;
 }
 
 #subtitle {

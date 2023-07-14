@@ -98,7 +98,7 @@ const setContainerSizes = () => {
     $("#title").css("font-size", 1.4 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
     $("#btitle").css("font-size", mediaBoxConfig.headerFontSize * window.innerHeight + "px");
     $("#subtitle").css("font-size", 1.4 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
-
+    $("#btitle b").css("font-size", 1.1 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
 };
 
 window.addEventListener('load', async () => {
