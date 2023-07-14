@@ -18,6 +18,7 @@ let animationResetInterval = 6;
 let logInterval = 3600;
 
 let noSettings = true;
+let subtitle = "";
 
 const loadURLSetting = (url, parameter, defaultValue) => {
     if (url.searchParams.has(parameter)) {
@@ -47,6 +48,7 @@ const loadURLSettings = () => {
     animationMode = loadURLSetting(url, "animMode", animationMode);
     animationResetInterval = +loadURLSetting(url, "resetInterval", animationResetInterval);
     logInterval = +loadURLSetting(url, "logInterval", logInterval);
+    subtitle = decodeURIComponent(loadURLSetting(url, "subtitle", subtitle));
 
     window.history.pushState("string", "Title", url.href);
 
@@ -69,6 +71,7 @@ const updateURL = () => {
     url.searchParams.set("animMode", animationMode);
     url.searchParams.set("resetInterval", animationResetInterval);
     url.searchParams.set("logInterval", logInterval);
+    url.searchParams.set("subtitle", encodeURIComponent(subtitle))
 
     window.history.pushState("string", "Title", url.href);
 };

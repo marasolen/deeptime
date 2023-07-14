@@ -68,7 +68,10 @@ const setContainerSize = (config) => {
 const resizeStyles = (config) => {
     $(config.parentElement).css("border-width", config.borderWidth * window.innerHeight + "px");
     $(config.parentElement).css("border-radius", 6 * config.borderWidth * window.innerHeight + "px");
-    $(config.parentElement).css("padding", 6 * config.borderWidth * window.innerHeight + "px");
+    $(config.parentElement).css("padding-left", 6 * config.borderWidth * window.innerHeight + "px");
+    $(config.parentElement).css("padding-right", 6 * config.borderWidth * window.innerHeight + "px");
+    $(config.parentElement).css("padding-top", 2 * config.borderWidth * window.innerHeight + "px");
+    $(config.parentElement).css("padding-bottom", 2 * config.borderWidth * window.innerHeight + "px");
     $(config.parentElement).css("font-size", config.descriptionFontSize * window.innerHeight + "px");
     $(config.parentElement + " input").css("font-size", config.descriptionFontSize * window.innerHeight + "px");
     $(config.parentElement + " select").css("font-size", config.descriptionFontSize * window.innerHeight + "px");
@@ -92,6 +95,10 @@ const setContainerSizes = () => {
     $("#pause-button").css("font-size", 1.3 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
     $(".interface-button").css("border-radius", 2 * mediaBoxConfig.borderWidth * window.innerHeight + "px");
     $(".interaction-description").css("font-size", 0.75 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
+    $("#title").css("font-size", 1.4 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
+    $("#btitle").css("font-size", mediaBoxConfig.headerFontSize * window.innerHeight + "px");
+    $("#subtitle").css("font-size", 1.4 * mediaBoxConfig.headerFontSize * window.innerHeight + "px");
+
 };
 
 window.addEventListener('load', async () => {
@@ -145,10 +152,16 @@ window.addEventListener('load', async () => {
 
     updateButtonStatuses();
 
+    $('img').on('dragstart', function(event) { event.preventDefault(); });
+
     document.getElementById("loading").style.display = "none";
     document.getElementById("escape-to-settings").style.display = "block";
 
-    $('img').on('dragstart', function(event) { event.preventDefault(); });
+    if (subtitle) {
+        document.getElementById("subtitle").innerHTML = subtitle;
+    } else {
+        document.getElementById("titles").style.textAlign = "center";
+    }
 
     setTimeout(() => {
         document.getElementById("escape-to-settings").style.display = "none";

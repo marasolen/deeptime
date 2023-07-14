@@ -15,7 +15,7 @@ const eventPreviewConfig = {
 const tieredTimelineConfig = {
     parentElement: "#tiered-timeline",
     margin: {
-        top:    16.3 / 100,
+        top:    14.0 / 100,
         right:   5.0 / 100,
         bottom:  1.8 / 100,
         left:    5.0 / 100

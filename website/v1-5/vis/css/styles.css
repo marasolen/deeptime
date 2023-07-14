@@ -16,13 +16,45 @@
     z-index: 1;
 }
 
+#titles {
+    position: absolute;
+
+    width: 80%;
+    height: 4%;
+
+    top: 0%;
+    left: 10%;
+
+    align-content: center;
+    text-align: left;
+}
+
+#title {
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+
+#btitle {
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+
+#subtitle {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    float: right;
+}
+
 #simple-timeline {
     position: absolute;
 
     width: 100%;
     height: 12%;
 
-    top: 0%;
+    top: 4%;
     left: 0%;
 }
 
@@ -32,7 +64,7 @@
     width: 100%;
     height: 1%;
 
-    top: 12%;
+    top: 16%;
     left: 0%;
 
     border: none;
@@ -43,19 +75,19 @@
     position: absolute;
 
     width: 100%;
-    height: 87%;
+    height: 83%;
 
-    top: 12%;
+    top: 16%;
     left: 0%;
 }
 
 #media-focus {
     position: absolute;
 
-    width: 20%;
-    height: 36%;
+    width: 22%;
+    height: 40%;
 
-    top: 35%;
+    top: 36%;
     left: 3%;
 
     align-content: center;
@@ -77,7 +109,7 @@
 .interaction-description {
     position: absolute;
 
-    width: 22.7%;
+    width: 24.7%;
     height: 8%;
 
     top: 82%;
@@ -90,7 +122,7 @@
 #pause-button {
     position: absolute;
 
-    width: 22.7%;
+    width: 24.7%;
     height: 8%;
 
     top: 88%;
@@ -100,7 +132,7 @@
 #wait-button {
     position: absolute;
 
-    width: 22.7%;
+    width: 24.7%;
     height: 8%;
 
     top: 88%;
@@ -110,7 +142,7 @@
 #next-button {
     position: absolute;
 
-    width: 22.7%;
+    width: 24.7%;
     height: 10%;
 
     top: 82%;
@@ -120,7 +152,7 @@
 #reset-button {
     position: absolute;
 
-    width: 11%;
+    width: 12%;
     height: 5%;
 
     top: 94%;
@@ -130,9 +162,9 @@
 #back-button {
     position: absolute;
 
-    width: 11%;
+    width: 12%;
     height: 5%;
 
     top: 94%;
-    left: 14.6%;
+    left: 15.6%;
 }

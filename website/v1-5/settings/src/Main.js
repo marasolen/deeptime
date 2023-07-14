@@ -22,6 +22,10 @@ const updatePage = () => {
     $("#interval").val(animationInterval).change();
     $("#reset-delay").val(animationResetInterval).change();
 
+    $("#subtitle").val(subtitle).change();
+    $("#username").val(user).change();
+    $("#password").val(pass).change();
+
     ["animation-event", "animation-event-group"].forEach(style => {
         $('input:radio[name=animation-style]').filter('[id=' + style + ']').prop("checked", animationMode === style);
     });
@@ -87,6 +91,11 @@ const setInputFunctions = () => {
 
     $('#reset-delay').on("change", () => {
         animationResetInterval = $("#reset-delay").val();
+        updateURL();
+    });
+
+    $('#subtitle').on("change", () => {
+        subtitle = $("#subtitle").val();
         updateURL();
     });
 
