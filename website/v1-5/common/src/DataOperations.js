@@ -21,6 +21,7 @@ const processData = async (sheetsId) => {
     let events;
     await parser.parse(sheetsId).then(temporaryData => {
         temporaryData.forEach(d => {
+            console.log(d)
             d.time = getTimeInYears(d.timeunit, +d.timevalue);
             d.anchor = d["anchor?"];
         });

@@ -504,7 +504,7 @@ class TieredTimeline {
 
             const numberWidth = 1.1 * vis.chartTesting
                 .style("font-size", expandingFontSize + "px")
-                .text(_ => vis.numberFormatter(e.time).length).node().getBBox().width;
+                .text(_ => vis.numberFormatter(e.time)).node().getBBox().width;
 
             const xPosition = vis.main.xScale(e.time);
             const width = Math.max(labelWidth, numberWidth);
