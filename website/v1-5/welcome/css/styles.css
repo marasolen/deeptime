@@ -1,0 +1,32 @@
+#interaction-container {
+    position: absolute;
+
+    width: 60%;
+    height: 30%;
+
+    top: 30%;
+    left: 20%;
+
+    align-content: center;
+    text-align: center;
+}
+
+#default {
+    position: absolute;
+
+    width: 40%;
+    height: 24%;
+
+    top: 40%;
+    left: 0%;
+}
+
+#custom {
+    position: absolute;
+
+    width: 40%;
+    height: 24%;
+
+    top: 40%;
+    left: 60%;
+}

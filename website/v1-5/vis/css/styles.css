@@ -1,0 +1,176 @@
+#escape-to-settings {
+    position: absolute;
+
+    width: 30%;
+    height: 8%;
+
+    top: 30%;
+    left: 35%;
+
+    align-content: center;
+    text-align: center;
+
+    background-color: black;
+    color: white;
+    
+    z-index: 1;
+}
+
+#titles {
+    position: absolute;
+
+    width: 80%;
+    height: 4%;
+
+    top: 0%;
+    left: 10%;
+
+    align-content: center;
+    text-align: left;
+}
+
+#title {
+    display: inline;
+    margin: 0;
+    padding: 0;
+}
+
+#btitle {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    color: #222222;
+}
+
+#btitle b {
+    font-weight: 900;
+    color: black;
+}
+
+#subtitle {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    float: right;
+}
+
+#simple-timeline {
+    position: absolute;
+
+    width: 100%;
+    height: 12%;
+
+    top: 4%;
+    left: 0%;
+}
+
+#separator {
+    position: absolute;
+
+    width: 100%;
+    height: 1%;
+
+    top: 16%;
+    left: 0%;
+
+    border: none;
+    border-top: 5px dashed black;
+}
+
+#tiered-timeline {
+    position: absolute;
+
+    width: 100%;
+    height: 83%;
+
+    top: 16%;
+    left: 0%;
+}
+
+#media-focus {
+    position: absolute;
+
+    width: 22%;
+    height: 40%;
+
+    top: 36%;
+    left: 3%;
+
+    align-content: center;
+    text-align: center;
+    border: 5px dashed black;
+    border-radius: 30px;
+}
+
+#media-description {
+    text-align: left;
+}
+
+#media-image {
+    max-height: 40%;
+
+    max-width: 90%;
+}
+
+.interaction-description {
+    position: absolute;
+
+    width: 24.7%;
+    height: 8%;
+
+    top: 82%;
+    left: 3%;
+
+    align-content: center;
+    text-align: center;
+}
+
+#pause-button {
+    position: absolute;
+
+    width: 24.7%;
+    height: 8%;
+
+    top: 88%;
+    left: 3%;
+}
+
+#wait-button {
+    position: absolute;
+
+    width: 24.7%;
+    height: 8%;
+
+    top: 88%;
+    left: 3%;
+}
+
+#next-button {
+    position: absolute;
+
+    width: 24.7%;
+    height: 10%;
+
+    top: 82%;
+    left: 3%;
+}
+
+#reset-button {
+    position: absolute;
+
+    width: 12%;
+    height: 5%;
+
+    top: 94%;
+    left: 3%;
+}
+
+#back-button {
+    position: absolute;
+
+    width: 12%;
+    height: 5%;
+
+    top: 94%;
+    left: 15.6%;
+}
