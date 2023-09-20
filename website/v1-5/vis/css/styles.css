@@ -1,3 +1,7 @@
+html {
+    touch-action: none;
+}
+
 #escape-to-settings {
     position: absolute;
 
