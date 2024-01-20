@@ -1,0 +1,64 @@
+#upload {
+    position: absolute;
+
+    width: 41%;
+    height: 70%;
+
+    top: 4%;
+    left: 5%;
+
+    align-content: center;
+    text-align: left;
+    border: 5px dashed black;
+    border-radius: 30px;
+}
+
+#settings {
+    position: absolute;
+
+    width: 41%;
+    height: 31%;
+
+    top: 4%;
+    left: 51%;
+
+    align-content: center;
+    text-align: left;
+    border: 5px dashed black;
+    border-radius: 30px;
+}
+
+#advanced {
+    position: absolute;
+
+    width: 41%;
+    height: 31%;
+
+    top: 43%;
+    left: 51%;
+
+    align-content: center;
+    text-align: left;
+    border: 5px dashed black;
+    border-radius: 30px;
+}
+
+#welcome {
+    position: absolute;
+
+    width: 20%;
+    height: 12%;
+
+    top: 82%;
+    left: 26%;
+}
+
+#start {
+    position: absolute;
+
+    width: 20%;
+    height: 12%;
+
+    top: 82%;
+    left: 54%;
+}
