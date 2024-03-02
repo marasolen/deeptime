@@ -150,10 +150,17 @@ const backEvent = () => {
 };
 
 const nextEvent = () => {
-    const previousEventIndex = currentEventIndex;
-    const previousGroupIndex = currentGroupIndex;
+    if (backGroupAmount > 0 || backEventAmount > 0) {
+        setTimeout(() => {
+            backGroupAmount = 0;
+            backEventAmount = 0;
+            
+            tieredTimeline.setBoldedEvent(currentGroupIndex, currentEventIndex, true);
 
-    if (currentEventIndex + 1 < data[currentGroupIndex].events.length) {
+            const currentEvent = data[currentGroupIndex].events[currentEventIndex];
+            setMedia(currentEvent.label, currentEvent.description, currentEvent.image);
+        }, 10)
+    } else if (currentEventIndex + 1 < data[currentGroupIndex].events.length) {
         currentEventIndex += 1;
 
         const dataCopy = getSlicedData();
@@ -168,16 +175,6 @@ const nextEvent = () => {
 
         tieredTimeline.nextTime(dataCopy[currentGroupIndex], true);
         timeline.updateData(dataCopy[currentGroupIndex], dataCopy, animationDuration);
-    }
-
-    if (backGroupAmount > 0 || backEventAmount > 0) {
-        setTimeout(() => {
-            backGroupAmount = 0;
-            backEventAmount = 0;
-            
-            console.log(d3.select("#event-text-" + currentGroupIndex + "-" + currentEventIndex))
-            tieredTimeline.setBoldedEvent(currentGroupIndex, currentEventIndex, true);
-        }, 10)
     }
 
     updateURL();
