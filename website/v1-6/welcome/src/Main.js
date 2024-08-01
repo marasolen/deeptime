@@ -5,7 +5,7 @@ const config = {
 
 const setButtonFunctions = () => {
     document.getElementById("default").onclick = () => {
-        changePage("vis", [{ key: "id", value: "1WTxwt7RjEiNdJqSu6U2L1_CGpbsOwgUYQT3VyrdDoaI" }])
+        changePage("vis", [{ key: "id", value: "1K4-sSSBIKzZOIDBDnqAPo_Uib7IvTiKq59A9l7BqUlA" }])
     };
 
     document.getElementById("custom").onclick = () => {
