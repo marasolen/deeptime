@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const scheduler = require("node-schedule");
+var path = require('path');
 
 const userPassKeys = JSON.parse(fs.readFileSync('keys.json'));
 
@@ -21,7 +22,7 @@ const app = express();
 
 app.use(express.json());
 
-const sitePath = "/home/solen/website/";
+const sitePath = path.join(__dirname, '..', '..', 'website');
 
 app.use(express.static(sitePath));
 
