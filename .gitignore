@@ -133,6 +133,11 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+# no server code
+server/src/keys.json
+server/src/apiKey.json
+server/data
+
 # no certificates
 localhost-key.pem
 localhost.pem
