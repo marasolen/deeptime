@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "express": "^5.2.1",
     "qs": "^6.15.0"
   }
 }
